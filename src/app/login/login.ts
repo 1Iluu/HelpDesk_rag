@@ -13,9 +13,9 @@ export class Login {
   constructor(private router: Router) {}
 
   iniciarSesionTest() {
-    console.log('Navegando a /chat...');
+    console.log('Navegando a /app...');
 
-    this.router.navigate(['/chat']);
+    this.router.navigate(['/app']);
   }
 
 }
