@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { Login } from './login/login';
 import { ChatComponent } from './chat/chat';
 import { MainLayoutComponent } from './main-layout-component/main-layout-component';
-
+import { Home } from './home/home';
 
 export const routes: Routes = [
 
@@ -12,15 +12,19 @@ export const routes: Routes = [
   },
 
   {
-    path: 'app', 
+    path: 'app',
     component: MainLayoutComponent,
-    
+
     children: [
       {
         path: 'products',
-        component: ChatComponent 
+        component: ChatComponent
       },
-    
+      {
+        path: 'home',
+        component: Home
+      },
+
       {
         path: '',
         redirectTo: 'app',
