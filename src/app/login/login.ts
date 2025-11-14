@@ -1,23 +1,41 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-
 @Component({
-  standalone: true,
   selector: 'app-login',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './login.html',
-  styleUrl: './login.css',
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  imports: [],
 })
 export class Login {
-  constructor(private router: Router) {}
+  private fb = inject(FormBuilder);
+    private router = inject(Router);
 
-  iniciarSesionTest() {
-    console.log('Navegando a /app...');
+  showPassword = false;
 
-    this.router.navigate(['/app']);
+  form = this.fb.group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+  });
+
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
   }
 
+  onSubmit(): void {
+     this.router.navigate(['/app/chat']);
+     /*
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    console.log('Login payload', this.form.value);
+   */
+  }
+
+  // helpers para template
+  get email() { return this.form.get('email'); }
+  get password() { return this.form.get('password'); }
 }
-
-

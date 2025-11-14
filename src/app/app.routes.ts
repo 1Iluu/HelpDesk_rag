@@ -1,46 +1,34 @@
 import { Routes } from '@angular/router';
 import { Login } from './login/login';
-import { ChatComponent } from './chat/chat';
-import { MainLayoutComponent } from './main-layout-component/main-layout-component';
-import { Home } from './home/home';
+import { Frame } from './frame/frame';
+
 
 export const routes: Routes = [
-
-  {
-    path: 'login',
-    component: Login
-  },
+  { path: '', pathMatch: 'full', redirectTo: 'login' },
+  { path: 'login', component: Login, title: 'RAG Help Desk - Login' },
 
   {
     path: 'app',
-    component: MainLayoutComponent,
-
+    component: Frame,
     children: [
       {
-        path: 'products',
-        component: ChatComponent
+        path: 'chat',
+        loadComponent: () => import('./chat/chat').then(m => m.ChatComponent),
+        title: 'Chatbot'
       },
       {
-        path: 'home',
-        component: Home
+        path: 'nps',
+        loadComponent: () => import('./nps/nps').then(m => m.NPS),
+        title: 'NPS Metrics'
       },
-
       {
-        path: '',
-        redirectTo: 'app',
-        pathMatch: 'full'
-      }
+        path: 'users',
+        loadComponent: () => import('./usermanagement/usermanagement').then(m => m.Usermanagement),
+        title: 'User Management'
+      },
+      { path: '', pathMatch: 'full', redirectTo: 'chatbot' },
     ]
   },
 
-  {
-    path: '',
-    redirectTo: 'login',
-    pathMatch: 'full'
-  },
-
-  {
-    path: '**',
-    redirectTo: 'login'
-  },
+  { path: '**', redirectTo: 'login' },
 ];

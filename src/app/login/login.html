@@ -1,36 +1,132 @@
-<section>
-  <div class="form-box">
-    <div class="form-value">
-      <form action="" novalidate>
-        <h2>Help Desk</h2>
+<div
+  class="relative flex min-h-screen w-full flex-col items-center justify-center bg-background-light dark:bg-background-dark p-4"
+>
+  <div class="w-full max-w-md">
+    <!-- Logo -->
+     
+    <div class="flex justify-center mb-6">
+      <div class="flex items-center justify-center h-12 w-12 rounded-full bg-primary/20">
+        <svg
+          class="h-7 w-7 text-primary"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 18.001v-5.25m0 0a3.375 3.375 0 1 0 0-6.75 3.375 3.375 0 0 0 0 6.75Zm-1.5-12.001a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Zm-3 5.25a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Zm1.5 6.75a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Zm9-12.001a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Zm-3 5.25a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Zm1.5 6.75a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Z"
+          ></path>
+        </svg>
+      </div>
+    </div>
 
-        <div class="inputbox">
-          <ion-icon name="mail-outline"></ion-icon>
-          <input type="text" required />
-          <label>Username</label>
+    <!-- Card -->
+    <div
+      class="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm p-6 md:p-8"
+    >
+      <!-- Header -->
+      <div class="text-center mb-6">
+        <h1 class="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">
+          Admin &amp; Agent Login
+        </h1>
+        <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+          Log in to access the RAG help desk.
+        </p>
+      </div>
+
+      <!-- Form -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4" novalidate>
+        <!-- Email -->
+        <div>
+          <label
+            for="email"
+            class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5"
+            >Email Address</label
+          >
+          <div class="relative rounded-lg">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <span class="material-symbols-outlined text-zinc-400" style="font-size:20px">mail</span>
+            </div>
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              placeholder="you@example.com"
+              class="block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 py-3 pl-10 pr-3 text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:border-primary focus:ring-primary"
+              [attr.aria-invalid]="email?.invalid && (email?.touched || email?.dirty)"
+            />
+          </div>
+          <div *ngIf="email?.invalid && (email?.touched || email?.dirty)" class="mt-1 text-xs text-red-600">
+            <span *ngIf="email?.errors?.['required']">El email es obligatorio.</span>
+            <span *ngIf="email?.errors?.['email']">Formato de email inválido.</span>
+          </div>
         </div>
 
-        <div class="inputbox">
-          <ion-icon name="lock-closed-outline"></ion-icon>
-          <input type="password" required />
-          <label>Password</label>
+        <!-- Password -->
+        <div>
+          <label
+            for="password"
+            class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5"
+            >Password</label
+          >
+          <div class="relative rounded-lg">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <span class="material-symbols-outlined text-zinc-400" style="font-size:20px">lock</span>
+            </div>
+            <input
+              id="password"
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="Enter your password"
+              class="block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 py-3 pl-10 pr-10 text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:border-primary focus:ring-primary"
+              [attr.aria-invalid]="password?.invalid && (password?.touched || password?.dirty)"
+            />
+            <button
+              type="button"
+              class="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              (click)="togglePassword()"
+              aria-label="Mostrar u ocultar contraseña"
+            >
+              <span class="material-symbols-outlined" style="font-size:20px">
+                {{ showPassword ? 'visibility_off' : 'visibility' }}
+              </span>
+            </button>
+          </div>
+          <div *ngIf="password?.invalid && (password?.touched || password?.dirty)" class="mt-1 text-xs text-red-600">
+            <span *ngIf="password?.errors?.['required']">La contraseña es obligatoria.</span>
+            <span *ngIf="password?.errors?.['minlength']">Mínimo 6 caracteres.</span>
+          </div>
         </div>
 
-        <div class="forget">
-          <label>
-            <input type="checkbox" />
-            Remember Me
-          </label>
-
-          <a href="#">Forgot password?</a>
+        <!-- Forgot -->
+        <div class="flex items-center justify-end">
+          <a class="text-sm font-medium text-primary hover:underline" href="#">Forgot Password?</a>
         </div>
 
-        <button type="button" (click)="iniciarSesionTest()">Log in</button>
+        <!-- Submit -->
+        <div>
+          <button
+            type="submit"
+            class="w-full justify-center rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
 
-        <div class="register">
-          <p>Don't have an account? <a href="#">Register</a></p>
+          >
+            Log In
+          </button>
         </div>
       </form>
     </div>
+
+    <!-- Footer -->
+    <div class="mt-8 text-center text-xs text-zinc-500 dark:text-zinc-600">
+      <p>© 2025 RAG Solutions Inc. All rights reserved.</p>
+      <div class="mt-2">
+        <a class="hover:underline" href="#">Terms of Service</a>
+        <span class="mx-1">·</span>
+        <a class="hover:underline" href="#">Privacy Policy</a>
+      </div>
+    </div>
   </div>
-</section>
+</div>
