@@ -1,160 +1,226 @@
 <div class="flex-1 min-h-0 overflow-y-auto p-6">
-    <header class="flex items-center justify-between mb-4">
-      <h3 class="text-xl font-semibold text-gray-900 dark:text-white">User Management</h3>
-      <button type="button" (click)="isAddOpen = true"
-              class="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90">
-        <span class="material-symbols-outlined text-base">add</span>
-        <span>Add User</span>
+  <header class="flex items-center justify-between mb-4">
+    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">User Management</h3>
+    <button type="button" (click)="isAddOpen = true"
+            class="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90">
+      <span class="material-symbols-outlined text-base">add</span>
+      <span>Add User</span>
+    </button>
+  </header>
+
+  <!-- SEARCH -->
+  <div class="mb-4">
+    <div class="relative">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+      <input
+        class="w-full pl-10 pr-4 py-2 text-sm rounded-lg border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-primary focus:border-primary"
+        placeholder="Search users..."
+        type="text"
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+      />
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+      <thead class="text-xs text-gray-700 dark:text-gray-400 uppercase bg-gray-50 dark:bg-gray-800/50">
+        <tr>
+          <th class="px-6 py-3">User</th>
+          <th class="px-6 py-3">Role</th>
+          <th class="px-6 py-3">Status</th>
+          <th class="px-6 py-3">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr class="bg-white dark:bg-[#111a22] border-b dark:border-gray-800"
+            *ngFor="let u of filteredUsers()">
+          <td class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap flex items-center gap-3">
+            <div class="bg-center bg-cover rounded-full size-8"
+                 [style.background-image]="'url(' + u.avatar + ')'"></div>
+            <div>
+              <div>{{ u.name }}</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">{{ u.mail }}</div>
+            </div>
+          </td>
+
+          <td class="px-6 py-4">{{ u.role }}</td>
+
+          <td class="px-6 py-4">
+            <span class="px-2 py-1 text-xs font-medium rounded-full"
+              [ngClass]="u.enabled ? 'bg-green/20 text-green' : 'bg-red/20 text-red'">
+              {{ u.enabled ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+
+          <td class="px-6 py-4 flex items-center gap-2">
+            <button class="p-2 text-gray-500 hover:text-primary" type="button" (click)="openEdit(u)">
+              <span class="material-symbols-outlined text-lg">edit</span>
+            </button>
+
+            <button class="p-2 text-gray-500 hover:text-red" type="button" (click)="deleteUser(u.id!)">
+              <span class="material-symbols-outlined text-lg">delete</span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ========================================================= -->
+<!-- =============== MODAL: ADD NEW USER ====================== -->
+<!-- ========================================================= -->
+
+<div *ngIf="isAddOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+     (click)="isAddOpen = false">
+  <div class="w-full max-w-md rounded-xl bg-background-light dark:bg-[#192633] shadow-2xl p-6 m-4"
+       (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="addTitle">
+
+    <div class="flex items-center justify-between mb-6">
+      <h2 id="addTitle" class="text-2xl font-bold text-gray-900 dark:text-white">
+        Add New User
+      </h2>
+      <button type="button" (click)="isAddOpen = false"
+              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+        <span class="material-symbols-outlined">close</span>
       </button>
-    </header>
-
-    <div class="mb-4">
-      <div class="relative">
-        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
-        <input class="w-full pl-10 pr-4 py-2 text-sm rounded-lg border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-primary focus:border-primary"
-               placeholder="Search users..." type="text"/>
-      </div>
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-        <thead class="text-xs text-gray-700 dark:text-gray-400 uppercase bg-gray-50 dark:bg-gray-800/50">
-          <tr>
-            <th class="px-6 py-3">User</th>
-            <th class="px-6 py-3">Role</th>
-            <th class="px-6 py-3">Status</th>
-            <th class="px-6 py-3">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="bg-white dark:bg-[#111a22] border-b dark:border-gray-800" *ngFor="let u of rows">
-            <td class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap flex items-center gap-3">
-              <div class="bg-center bg-cover rounded-full size-8" [style.background-image]="'url(' + u.avatar + ')'"></div>
-              <div>
-                <div>{{ u.name }}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">{{ u.email }}</div>
-              </div>
-            </td>
-            <td class="px-6 py-4">{{ u.role }}</td>
-            <td class="px-6 py-4">
-              <span class="px-2 py-1 text-xs font-medium rounded-full"
-                    [ngClass]="u.status === 'Active' ? 'bg-green/20 text-green'
-                               : u.status === 'Pending' ? 'bg-yellow/20 text-yellow'
-                               : 'bg-red/20 text-red'">{{ u.status }}</span>
-            </td>
-            <td class="px-6 py-4 flex items-center gap-2">
-              <button class="p-2 text-gray-500 hover:text-primary" type="button" (click)="openEdit(u)">
-                <span class="material-symbols-outlined text-lg">edit</span>
-              </button>
-              <button class="p-2 text-gray-500 hover:text-red" type="button">
-                <span class="material-symbols-outlined text-lg">delete</span>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+    <form (ngSubmit)="saveNewUser()">
+      <div class="space-y-4">
 
-  <!-- MODAL: Add New User (el tuyo de antes) -->
-  <div *ngIf="isAddOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-       (click)="isAddOpen = false">
-    <div class="w-full max-w-md rounded-xl bg-background-light dark:bg-[#192633] shadow-2xl p-6 m-4"
-         (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="addTitle">
-      <div class="flex items-center justify-between mb-6">
-        <h2 id="addTitle" class="text-2xl font-bold text-gray-900 dark:text-white">Add New User</h2>
-        <button type="button" (click)="isAddOpen = false"
-                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-      <form>
-        <div class="space-y-4">
-          <div>
-            <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
-            <input id="name" type="text"
-                   class="form-input block w-full rounded-lg border-gray-300 dark:border-[#324d67] bg-white dark:bg-[#101922] text-gray-900 dark:text-white focus:ring-primary focus:border-primary"/>
-          </div>
-          <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-            <input id="email" type="email"
-                   class="form-input block w-full rounded-lg border-gray-300 dark:border-[#324d67] bg-white dark:bg-[#101922] text-gray-900 dark:text-white focus:ring-primary focus:border-primary"/>
-          </div>
-          <div>
-            <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
-            <select id="role"
-                    class="form-select block w-full rounded-lg border-gray-300 dark:border-[#324d67] bg-white dark:bg-[#101922] text-gray-900 dark:text-white focus:ring-primary focus:border-primary">
-              <option>Admin</option>
-              <option>Agent</option>
-              <option>User</option>
-            </select>
-          </div>
-          <div>
-            <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
-            <input id="password" type="password"
-                   class="form-input block w-full rounded-lg border-gray-300 dark:border-[#324d67] bg-white dark:bg-[#101922] text-gray-900 dark:text-white focus:ring-primary focus:border-primary"/>
-          </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
+          <input
+            type="text"
+            [(ngModel)]="newUser.name"
+            name="name"
+            required
+            class="form-input block w-full rounded-lg border-gray-300 dark:border-[#324d67] bg-white dark:bg-[#101922] text-gray-900 dark:text-white focus:ring-primary focus:border-primary"
+          />
         </div>
 
-        <div class="mt-6 flex justify-end gap-4">
-          <button type="button" (click)="isAddOpen = false"
-                  class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-[#324d67] rounded-lg hover:bg-gray-300 dark:hover:bg-[#4a647f]">
-            Cancel
-          </button>
-          <button type="submit"
-                  class="px-4 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90">
-            Add User
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL: Edit User (nuevo) -->
-  <div *ngIf="isEditOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-background-dark/80"
-       (click)="closeEdit()">
-    <div class="relative w-full max-w-lg rounded-xl bg-[#2A2A2A] shadow-2xl"
-         (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="editTitle">
-      <div class="flex items-center justify-between border-b border-[#3C3C3C] p-6">
-        <p id="editTitle" class="text-[24px] font-bold leading-tight text-[#F0F0F0]">Edit User</p>
-        <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full text-[#A0A0A0] transition-colors hover:bg-white/10 hover:text-white" (click)="closeEdit()">
-          <span class="material-symbols-outlined text-2xl">close</span>
-        </button>
-      </div>
-
-      <div class="flex flex-col gap-4 p-6">
-        <div class="flex flex-col">
-          <label for="edit-name" class="pb-2 text-sm font-medium leading-normal text-[#A0A0A0]">Name</label>
-          <input id="edit-name" class="form-input h-12 w-full rounded-lg border border-[#3C3C3C] bg-[#1E1E1E] p-3 text-base text-[#F0F0F0] placeholder:text-[#6C757D] focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/40"
-                 [value]="editing?.name || ''" type="text"/>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+          <input
+            type="email"
+            [(ngModel)]="newUser.mail"
+            name="mail"
+            required
+            class="form-input block w-full rounded-lg border-gray-300 dark:border-[#324d67] bg-white dark:bg-[#101922] text-gray-900 dark:text-white focus:ring-primary focus:border-primary"
+          />
         </div>
 
-        <div class="flex flex-col">
-          <label for="edit-email" class="pb-2 text-sm font-medium leading-normal text-[#A0A0A0]">Email</label>
-          <input id="edit-email" class="form-input h-12 w-full rounded-lg border border-[#3C3C3C] bg-[#1E1E1E] p-3 text-base text-[#F0F0F0] placeholder:text-[#6C757D] focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50"
-                 [value]="editing?.email || ''" type="email" disabled />
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+          <input
+            type="password"
+            [(ngModel)]="newUser.password"
+            name="password"
+            required
+            minlength="6"
+            class="form-input block w-full rounded-lg border-gray-300 dark:border-[#324d67] bg-white dark:bg-[#101922] text-gray-900 dark:text-white focus:ring-primary focus:border-primary"
+          />
         </div>
 
-        <div class="flex flex-col">
-          <label for="edit-role" class="pb-2 text-sm font-medium leading-normal text-[#A0A0A0]">Role</label>
-          <select id="edit-role" class="form-input h-12 w-full rounded-lg border border-[#3C3C3C] bg-[#1E1E1E] p-3 text-base text-[#F0F0F0] focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/40"
-                  [value]="editing?.role || 'Admin'">
-            <option value="User">User</option>
-            <option value="Agent">Agent</option>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
+          <select
+            [(ngModel)]="newUser.role"
+            name="role"
+            class="form-select block w-full rounded-lg border-gray-300 dark:border-[#324d67] bg-white dark:bg-[#101922] text-gray-900 dark:text-white focus:ring-primary focus:border-primary">
             <option value="Admin">Admin</option>
+            <option value="Agent">Agent</option>
+            <option value="User">User</option>
           </select>
         </div>
 
-        <div class="flex flex-col">
-          <label for="edit-pass" class="pb-2 text-sm font-medium leading-normal text-[#A0A0A0]">Change Password</label>
-          <input id="edit-pass" class="form-input h-12 w-full rounded-lg border border-[#3C3C3C] bg-[#1E1E1E] p-3 text-base text-[#F0F0F0] placeholder:text-[#6C757D] focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/40"
-                 placeholder="Enter new password" type="password"/>
-        </div>
       </div>
 
-      <div class="flex items-center justify-end gap-3 border-t border-[#3C3C3C] p-6">
-        <button type="button" class="flex h-11 items-center justify-center rounded-lg bg-[#6C757D] px-6 text-base font-medium text-white transition-colors hover:bg-opacity-80" (click)="closeEdit()">Cancel</button>
-        <button type="button" class="flex h-11 items-center justify-center rounded-lg bg-primary px-6 text-base font-medium text-white transition-colors hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-50" disabled>Save Changes</button>
+      <div class="mt-6 flex justify-end gap-4">
+        <button type="button" (click)="isAddOpen = false"
+                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-[#324d67] rounded-lg hover:bg-gray-300 dark:hover:bg-[#4a647f]">
+          Cancel
+        </button>
+
+        <button type="submit"
+                class="px-4 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90">
+          Add User
+        </button>
       </div>
-    </div>
+    </form>
   </div>
+</div>
+
+<!-- ========================================================= -->
+<!-- =============== MODAL: EDIT USER ========================= -->
+<!-- ========================================================= -->
+
+<div *ngIf="isEditOpen"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-background-dark/80"
+     (click)="closeEdit()">
+
+  <div class="relative w-full max-w-lg rounded-xl bg-[#2A2A2A] shadow-2xl"
+       (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+
+    <div class="flex items-center justify-between border-b border-[#3C3C3C] p-6">
+      <p class="text-[24px] font-bold text-[#F0F0F0]" id="editTitle">Edit User</p>
+      <button type="button"
+              class="flex h-8 w-8 items-center justify-center rounded-full text-[#A0A0A0] hover:bg-white/10 hover:text-white"
+              (click)="closeEdit()">
+        <span class="material-symbols-outlined text-2xl">close</span>
+      </button>
+    </div>
+
+    <div class="flex flex-col gap-4 p-6">
+
+      <div>
+        <label class="text-sm font-medium text-[#A0A0A0]">Name</label>
+        <input type="text"
+               [(ngModel)]="editing!.name"
+               class="form-input h-12 w-full rounded-lg border border-[#3C3C3C] bg-[#1E1E1E] p-3 text-base text-[#F0F0F0] focus:border-primary focus:ring-primary/40"/>
+      </div>
+
+      <div>
+        <label class="text-sm font-medium text-[#A0A0A0]">Email</label>
+        <input type="email"
+               [value]="editing?.mail"
+               disabled
+               class="form-input h-12 w-full rounded-lg border border-[#3C3C3C] bg-[#1E1E1E] p-3 text-base text-[#777] opacity-60"/>
+      </div>
+
+      <div>
+        <label class="text-sm font-medium text-[#A0A0A0]">Role</label>
+        <select [(ngModel)]="editing!.role"
+                class="form-input h-12 w-full rounded-lg border border-[#3C3C3C] bg-[#1E1E1E] p-3 text-base text-[#F0F0F0]">
+          <option value="User">User</option>
+          <option value="Agent">Agent</option>
+          <option value="Admin">Admin</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-sm font-medium text-[#A0A0A0]">Change Password</label>
+        <input type="password"
+               [(ngModel)]="editing!.password"
+               placeholder="Enter new password"
+               class="form-input h-12 w-full rounded-lg border border-[#3C3C3C] bg-[#1E1E1E] p-3 text-base text-[#F0F0F0]"/>
+      </div>
+
+    </div>
+
+    <div class="flex items-center justify-end gap-3 border-t border-[#3C3C3C] p-6">
+      <button type="button"
+              class="flex h-11 items-center justify-center rounded-lg bg-[#6C757D] px-6 text-base font-medium text-white"
+              (click)="closeEdit()">Cancel</button>
+
+      <button type="button"
+              class="flex h-11 items-center justify-center rounded-lg bg-primary px-6 text-base font-medium text-white hover:bg-opacity-90"
+              (click)="saveEditUser()">Save Changes</button>
+    </div>
+
+  </div>
+</div>
