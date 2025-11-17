@@ -6,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
 })
 export class AuthenticaApi {
 
-  baseUrl = 'http://localhost:8080';
+  baseUrl = 'http://localhost:8081';
 
   constructor(private http: HttpClient) {}
 

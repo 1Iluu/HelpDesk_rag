@@ -17,13 +17,13 @@ export interface UserDTO {
 })
 export class UserManagementApi {
 
-  private baseUrl = 'http://localhost:8080/users';
+  private baseUrl = 'http://localhost:8081/users';
 
   constructor(private http: HttpClient) {}
 
   // SSR-safe localStorage
   private getTokenSafe(): string {
-    if (typeof window === 'undefined') return '';  
+    if (typeof window === 'undefined') return '';
     return localStorage.getItem('token') ?? '';
   }
 
