@@ -1,8 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { AuthenticaApi } from '../api/authenticate.api';
+import { Router, ActivatedRoute } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -14,7 +14,8 @@ export class Login {
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
-  private authApi = inject(AuthenticaApi);
+  private route = inject(ActivatedRoute);
+  private authService = inject(AuthService);
 
   showPassword = false;
 
@@ -34,16 +35,15 @@ export class Login {
     }
 
     const payload = {
-      mail: this.form.value.email,
-      password: this.form.value.password
+      mail: this.form.value.email || '',
+      password: this.form.value.password || ''
     };
 
-    this.authApi.authenticate(payload).subscribe({
-      next: (res: any) => {
-        const tk = res.token ?? res.jwttoken;
-        console.log('TOKEN:', tk);
-        localStorage.setItem('token', tk);
-        this.router.navigate(['/app/chat']);
+    this.authService.login(payload).subscribe({
+      next: () => {
+        // si el guard puso returnUrl, vuelves ahí; si no, vas a /app/chat
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/app/chat';
+        this.router.navigateByUrl(returnUrl);
       },
       error: (err: any) => {
         console.error(err);

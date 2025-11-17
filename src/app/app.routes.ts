@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { Login } from './login/login';
 import { Frame } from './frame/frame';
-
+import { authGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -9,6 +9,7 @@ export const routes: Routes = [
 
   {
     path: 'app',
+    canActivate: [authGuard],
     component: Frame,
     children: [
       {
@@ -26,7 +27,7 @@ export const routes: Routes = [
         loadComponent: () => import('./usermanagement/usermanagement').then(m => m.Usermanagement),
         title: 'User Management'
       },
-      { path: '', pathMatch: 'full', redirectTo: 'chatbot' },
+      { path: '', pathMatch: 'full', redirectTo: 'chat' },
     ]
   },
 

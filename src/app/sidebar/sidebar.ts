@@ -2,6 +2,7 @@ import { Component, Inject, PLATFORM_ID  } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -49,13 +50,14 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       </ul>
     </nav>
 
-    <div class="mt-auto px-4 pb-4">
-      <a routerLink="/login"
-         class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 text-sm">
-        <span class="material-symbols-outlined">logout</span>
-        <span>Logout</span>
-      </a>
-    </div>
+<div class="mt-auto px-4 pb-4">
+  <button
+    (click)="onLogout()"
+    class="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 text-sm">
+    <span class="material-symbols-outlined">logout</span>
+    <span>Logout</span>
+  </button>
+</div>
   </aside>
   `
 })
@@ -63,7 +65,9 @@ export class Sidebar {
   userRole: string = '';
   isBrowser = false;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+  constructor(@Inject(PLATFORM_ID) private platformId: Object,
+  private authService: AuthService,
+) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
 
@@ -95,5 +99,8 @@ export class Sidebar {
     } catch (e) {
       console.error("Error al decodificar token", e);
     }
+  }
+   onLogout() {
+    this.authService.logout();  
   }
 }
