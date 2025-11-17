@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, Inject, PLATFORM_ID  } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
@@ -29,7 +30,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
             <span>Chatbot</span>
           </a>
         </li>
-        <li>
+        <li *ngIf="userRole !== 'ROLEUser'">
           <a routerLink="/app/nps"
              routerLinkActive="bg-primary/10 text-primary font-semibold"
              class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50 text-sm">
@@ -37,7 +38,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
             <span>NPS Metrics</span>
           </a>
         </li>
-        <li>
+        <li *ngIf="userRole === 'ROLEAdmin'">
           <a routerLink="/app/users"
              routerLinkActive="bg-primary/10 text-primary font-semibold"
              class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50 text-sm">
@@ -58,4 +59,41 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   </aside>
   `
 })
-export class Sidebar {}
+export class Sidebar {
+  userRole: string = '';
+  isBrowser = false;
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
+
+  ngOnInit() {
+    if (this.isBrowser) {
+      this.loadRoleFromToken();
+    }
+  }
+
+  loadRoleFromToken() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      console.log('TOKEN PAYLOAD:', payload);
+      if (payload.role) {
+        this.userRole = payload.role;
+        return;
+      }
+
+      if (payload.authorities?.length > 0) {
+        const auth = payload.authorities[0];
+        if (auth.startsWith("ROLE")) {
+          this.userRole = auth.replace("ROLE", "");
+        }
+      }
+
+    } catch (e) {
+      console.error("Error al decodificar token", e);
+    }
+  }
+}
