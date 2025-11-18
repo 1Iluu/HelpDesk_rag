@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RagChatService } from '../services/rag-chat-service';
 import { RagChunk } from '../models/rag-chunk';
-
+import { FeedbackApi, FeedbackCreateDto } from '../api/feedback.api';
 type Msg = { role: 'user' | 'assistant'; text: string };
 
 @Component({
@@ -157,41 +157,110 @@ type Msg = { role: 'user' | 'assistant'; text: string };
             <div class="flex flex-col gap-6">
               <label class="flex flex-col w-full">
                 <p class="pb-2 text-base font-medium text-gray-900 dark:text-white">Your feedback</p>
-                <textarea class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#192633] p-4 text-base font-normal leading-normal text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/30" placeholder="Tell us what you liked or what could be improved..." rows="4"></textarea>
+               <textarea
+                  name="feedbackComment"
+                  [(ngModel)]="feedbackComment"
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#192633] p-4 text-base font-normal leading-normal text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/30"
+                  placeholder="Tell us what you liked or what could be improved..."
+                  rows="4">
+                </textarea>
               </label>
-
-              <div>
-                <p class="pb-4 text-base font-medium text-gray-900 dark:text-white">Overall rating</p>
-                <div class="grid grid-cols-5 gap-3 text-center">
-                  <div class="flex cursor-pointer flex-col items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400">
-                    <span class="material-symbols-outlined !text-3xl text-red-500">star</span>
-                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Very bad</p>
-                  </div>
-                  <div class="flex cursor-pointer flex-col items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400">
-                    <span class="material-symbols-outlined !text-3xl text-red-500">star</span>
-                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Bad</p>
-                  </div>
-                  <div class="flex cursor-pointer flex-col items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-yellow-500 dark:hover:text-yellow-400">
-                    <span class="material-symbols-outlined !text-3xl filled text-yellow-400">star</span>
-                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Good</p>
-                  </div>
-                  <div class="flex cursor-pointer flex-col items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-green-500 dark:hover:text-green-400">
-                    <span class="material-symbols-outlined !text-3xl text-green-500">star</span>
-                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Very good</p>
-                  </div>
-                  <div class="flex cursor-pointer flex-col items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-green-500 dark:hover:text-green-400">
-                    <span class="material-symbols-outlined !text-3xl text-green-500">star</span>
-                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Excellent</p>
-                  </div>
+           <div>
+            <p class="pb-4 text-base font-medium text-gray-900 dark:text-white">Overall rating</p>
+            <div class="grid grid-cols-5 gap-3 text-center">
+                <!-- 1 -->
+                <div
+                  class="flex cursor-pointer flex-col items-center gap-2"
+                  (click)="setRating(1)">
+                  <span
+                    class="material-symbols-outlined !text-3xl"
+                    [ngClass]="feedbackRating === 1 ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'">
+                    star
+                  </span>
+                  <p
+                    class="text-sm font-medium"
+                    [ngClass]="feedbackRating === 1 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">
+                    Very bad
+                  </p>
                 </div>
+
+                <!-- 2 -->
+                <div
+                  class="flex cursor-pointer flex-col items-center gap-2"
+                  (click)="setRating(2)">
+                  <span
+                    class="material-symbols-outlined !text-3xl"
+                    [ngClass]="feedbackRating === 2 ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'">
+                    star
+                  </span>
+                  <p
+                    class="text-sm font-medium"
+                    [ngClass]="feedbackRating === 2 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">
+                    Bad
+                  </p>
+                </div>
+
+                <!-- 3 -->
+                <div
+                  class="flex cursor-pointer flex-col items-center gap-2"
+                  (click)="setRating(3)">
+                  <span
+                    class="material-symbols-outlined !text-3xl"
+                    [ngClass]="feedbackRating === 3 ? 'text-yellow-400' : 'text-gray-400 dark:text-gray-500'">
+                    star
+                  </span>
+                  <p
+                    class="text-sm font-medium"
+                    [ngClass]="feedbackRating === 3 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">
+                    Good
+                  </p>
+                </div>
+
+                <!-- 4 -->
+                <div
+                  class="flex cursor-pointer flex-col items-center gap-2"
+                  (click)="setRating(4)">
+                  <span
+                    class="material-symbols-outlined !text-3xl"
+                    [ngClass]="feedbackRating === 4 ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'">
+                    star
+                  </span>
+                  <p
+                    class="text-sm font-medium"
+                    [ngClass]="feedbackRating === 4 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">
+                    Very good
+                  </p>
+                </div>
+
+                <!-- 5 -->
+                <div
+                  class="flex cursor-pointer flex-col items-center gap-2"
+                  (click)="setRating(5)">
+                  <span
+                    class="material-symbols-outlined !text-3xl"
+                    [ngClass]="feedbackRating === 5 ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'">
+                    star
+                  </span>
+                  <p
+                    class="text-sm font-medium"
+                    [ngClass]="feedbackRating === 5 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">
+                    Excellent
+                  </p>
+                </div>
+
               </div>
             </div>
+            </div>
           </div>
-
-          <div class="flex flex-row-reverse items-center justify-start gap-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-black/20 p-6">
-            <button class="rounded-lg bg-primary px-5 py-2.5 text-base font-semibold text-white transition-colors hover:bg-primary/90">
-              Submit
+          <div
+            class="flex flex-row-reverse items-center justify-start gap-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-black/20 p-6">
+            <button
+              (click)="submitFeedback()"
+              [disabled]="submittingFeedback || !feedbackRating || !feedbackComment.trim()"
+              class="rounded-lg bg-primary px-5 py-2.5 text-base font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-60">
+              {{ submittingFeedback ? 'Sending...' : 'Submit' }}
             </button>
+
             <button
               type="button"
               (click)="closeFeedback()"
@@ -199,6 +268,7 @@ type Msg = { role: 'user' | 'assistant'; text: string };
               Cancel
             </button>
           </div>
+
         </div>
       </div>
     </ng-container>
@@ -210,24 +280,63 @@ export class ChatComponent {
   streaming = signal(false);
 
   showFeedbackModal = signal(false);
+  feedbackComment = '';
+  feedbackRating: number | null = null;
+  submittingFeedback = false;
 
-  constructor(private chat: RagChatService) {}
+  constructor(
+    private chat: RagChatService,
+    private feedbackApi: FeedbackApi,
+  ) {}
 
   openFeedback() {
     this.showFeedbackModal.set(true);
   }
 
   closeFeedback() {
+    this.feedbackComment = '';
+    this.feedbackRating = null;
     this.showFeedbackModal.set(false);
   }
+  setRating(value: number) {
+    this.feedbackRating = value;
+  }
 
+   submitFeedback() {
+    if (!this.feedbackRating || !this.feedbackComment.trim()) {
+      return;
+    }
+
+    const dto: FeedbackCreateDto = {
+      coment: this.feedbackComment.trim(),
+      rating: this.feedbackRating,
+
+    };
+
+    this.submittingFeedback = true;
+
+    this.feedbackApi.createFeedback(dto).subscribe({
+      next: () => {
+        this.submittingFeedback = false;
+        this.feedbackComment = '';
+        this.feedbackRating = null;
+        this.showFeedbackModal.set(false);
+        alert('¡Gracias por tu feedback!');
+      },
+      error: (err) => {
+        console.error('Error al enviar feedback', err);
+        this.submittingFeedback = false;
+        alert('Ocurrió un error al enviar tu feedback. Inténtalo de nuevo.');
+      }
+    });
+  }
+  //chat
   async send() {
     const text = this.input.trim();
     if (!text) return;
 
     this.input = '';
 
-    // agrega mensaje del usuario y placeholder de asistente
     this.messages.update((arr) => [
       ...arr,
       { role: 'user', text },
