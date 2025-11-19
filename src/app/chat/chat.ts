@@ -32,7 +32,7 @@ type Msg = { role: 'user' | 'assistant'; text: string };
                 Chat Session
               </h3>
               <p class="text-sm text-gray-500 dark:text-gray-400">
-                Session ID: 1a2b3c-4d5e-6f7g
+               Session ID: {{ sessionId }}
               </p>
             </div>
 
@@ -283,7 +283,7 @@ export class ChatComponent {
   feedbackComment = '';
   feedbackRating: number | null = null;
   submittingFeedback = false;
-
+  sessionId = crypto.randomUUID();
   constructor(
     private chat: RagChatService,
     private feedbackApi: FeedbackApi,
@@ -310,7 +310,7 @@ export class ChatComponent {
     const dto: FeedbackCreateDto = {
       coment: this.feedbackComment.trim(),
       rating: this.feedbackRating,
-
+      chat_session: this.sessionId   
     };
 
     this.submittingFeedback = true;

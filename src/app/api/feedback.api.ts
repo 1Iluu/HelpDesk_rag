@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 export interface FeedbackCreateDto {
   coment: string;
   rating: number;
+  chat_session: string;
   // si tu backend espera más campos, agrégalos aquí
   // userId?: number;
   // userName?: string;
