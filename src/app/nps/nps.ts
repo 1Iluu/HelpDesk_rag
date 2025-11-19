@@ -284,7 +284,6 @@ export class NPS implements OnInit {
     const now = new Date();
     this.selectedMonth = now.getMonth() + 1;
     this.selectedYear = now.getFullYear();
-    // puedes ajustar el rango de años que quieres
     this.years = [now.getFullYear(), now.getFullYear() - 1];
   }
 
@@ -298,6 +297,7 @@ export class NPS implements OnInit {
     this.feedbackApi.getMonthlyStats(this.selectedYear, this.selectedMonth)
       .subscribe({
         next: (stats) => {
+          console.log('Stats cargadas', stats);
           this.stats = stats;
           this.loading = false;
         },
