@@ -6,10 +6,20 @@ export interface FeedbackCreateDto {
   coment: string;
   rating: number;
   chat_session: string;
-  // si tu backend espera más campos, agrégalos aquí
-  // userId?: number;
-  // userName?: string;
-  // sessionId?: string;
+  
+}
+export interface FeedbackStatsDto {
+  total: number;
+
+  promoters: number;
+  passives: number;
+  detractors: number;
+
+  rating1: number;
+  rating2: number;
+  rating3: number;
+  rating4: number;
+  rating5: number;
 }
 
 @Injectable({
@@ -23,5 +33,10 @@ export class FeedbackApi {
 
   createFeedback(dto: FeedbackCreateDto): Observable<any> {
     return this.http.post(this.baseUrl, dto);
+  }
+    getMonthlyStats(year: number, month: number): Observable<FeedbackStatsDto> {
+    return this.http.get<FeedbackStatsDto>(`${this.baseUrl}/stats`, {
+      params: { year, month }
+    });
   }
 }
