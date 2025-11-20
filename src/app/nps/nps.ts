@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FeedbackApi, FeedbackStatsDto } from '../api/feedback.api';
@@ -49,15 +49,15 @@ import { FeedbackApi, FeedbackStatsDto } from '../api/feedback.api';
       </div>
     </header>
 
-    <div *ngIf="loading" class="text-sm text-text-secondary-light dark:text-text-secondary-dark">
+    <div *ngIf="loading()" class="text-sm text-text-secondary-light dark:text-text-secondary-dark">
       Loading metrics...
     </div>
-    <div *ngIf="error" class="text-sm text-red-500">
-      {{ error }}
+    <div *ngIf="error()" class="text-sm text-red-500">
+      {{ error() }}
     </div>
 
     <!-- Overall rating + barras -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" *ngIf="!loading">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" *ngIf="!loading()">
       <div class="flex flex-col gap-4 rounded-xl border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark p-6 lg:col-span-2">
         <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
           <h3 class="text-text-light dark:text-text-dark text-xl font-semibold">Overall Rating</h3>
@@ -163,7 +163,7 @@ import { FeedbackApi, FeedbackStatsDto } from '../api/feedback.api';
     </div>
 
     <!-- Donuts + NPS score -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:col-span-2" *ngIf="!loading">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:col-span-2" *ngIf="!loading()">
       <!-- Promoters -->
       <div class="rounded-xl border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark p-6 flex flex-col items-center justify-center">
         <h3 class="text-text-light dark:text-text-dark text-lg font-semibold mb-4">Promoters</h3>
@@ -183,7 +183,7 @@ import { FeedbackApi, FeedbackStatsDto } from '../api/feedback.api';
               {{ promotersPercentage | number:'1.0-0' }}%
             </span>
             <span class="text-sm text-text-secondary-dark">
-              {{ stats?.promoters || 0 }}
+              {{ stats()?.promoters || 0 }}
             </span>
           </div>
         </div>
@@ -208,7 +208,7 @@ import { FeedbackApi, FeedbackStatsDto } from '../api/feedback.api';
               {{ passivesPercentage | number:'1.0-0' }}%
             </span>
             <span class="text-sm text-text-secondary-dark">
-              {{ stats?.passives || 0 }}
+              {{ stats()?.passives || 0 }}
             </span>
           </div>
         </div>
@@ -233,7 +233,7 @@ import { FeedbackApi, FeedbackStatsDto } from '../api/feedback.api';
               {{ detractorsPercentage | number:'1.0-0' }}%
             </span>
             <span class="text-sm text-text-secondary-dark">
-              {{ stats?.detractors || 0 }}
+              {{ stats()?.detractors || 0 }}
             </span>
           </div>
         </div>
@@ -253,13 +253,14 @@ import { FeedbackApi, FeedbackStatsDto } from '../api/feedback.api';
   </div>
 </div>
 
+
   `
 })
 
 export class NPS implements OnInit {
-  stats: FeedbackStatsDto | null = null;
-  loading = false;
-  error: string | null = null;
+  stats = signal<FeedbackStatsDto | null>(null);
+  loading = signal(false);
+  error = signal<string | null>(null);
 
   // filtro por mes
   selectedMonth: number;
@@ -292,19 +293,19 @@ export class NPS implements OnInit {
   }
 
   loadStats(): void {
-    this.loading = true;
-    this.error = null;
+    this.loading.set(true);
+    this.error.set(null);
+
     this.feedbackApi.getMonthlyStats(this.selectedYear, this.selectedMonth)
       .subscribe({
         next: (stats) => {
-          console.log('Stats cargadas', stats);
-          this.stats = stats;
-          this.loading = false;
+          this.stats.set(stats);
+          this.loading.set(false);
         },
         error: (err) => {
           console.error(err);
-          this.error = 'No se pudieron cargar las métricas.';
-          this.loading = false;
+          this.error.set('No se pudieron cargar las métricas.');
+          this.loading.set(false);
         }
       });
   }
@@ -316,7 +317,7 @@ export class NPS implements OnInit {
   // helpers
 
   get total(): number {
-    return this.stats?.total ?? 0;
+    return this.stats()?.total ?? 0;
   }
 
   private safePercent(count: number): number {
@@ -325,25 +326,26 @@ export class NPS implements OnInit {
   }
 
   get promotersPercentage(): number {
-    return this.safePercent(this.stats?.promoters ?? 0);
+    return this.safePercent(this.stats()?.promoters ?? 0);
   }
 
   get passivesPercentage(): number {
-    return this.safePercent(this.stats?.passives ?? 0);
+    return this.safePercent(this.stats()?.passives ?? 0);
   }
 
   get detractorsPercentage(): number {
-    return this.safePercent(this.stats?.detractors ?? 0);
+    return this.safePercent(this.stats()?.detractors ?? 0);
   }
 
   getRatingCount(stars: number): number {
-    if (!this.stats) return 0;
+    const s = this.stats();
+    if (!s) return 0;
     switch (stars) {
-      case 1: return this.stats.rating1;
-      case 2: return this.stats.rating2;
-      case 3: return this.stats.rating3;
-      case 4: return this.stats.rating4;
-      case 5: return this.stats.rating5;
+      case 1: return s.rating1;
+      case 2: return s.rating2;
+      case 3: return s.rating3;
+      case 4: return s.rating4;
+      case 5: return s.rating5;
       default: return 0;
     }
   }
