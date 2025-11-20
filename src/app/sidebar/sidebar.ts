@@ -83,7 +83,6 @@ export class Sidebar {
 
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      console.log('TOKEN PAYLOAD:', payload);
       if (payload.role) {
         this.userRole = payload.role;
         return;

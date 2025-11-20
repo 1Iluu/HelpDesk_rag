@@ -6,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
 })
 export class AuthenticaApi {
 
-  baseUrl = 'http://localhost:8081';
+  baseUrl = 'https://rag-backend-spring-1097661750103.us-east1.run.app';
 
   constructor(private http: HttpClient) {}
 

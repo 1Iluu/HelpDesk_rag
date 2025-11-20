@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { authInterceptor } from './auth/auth.interceptor';
+import { loaderInterceptor } from './interceptors/loader.interceptor';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
@@ -12,7 +13,8 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withEventReplay()),
     provideHttpClient(
       withFetch(),
-     withInterceptors([authInterceptor])
+     withInterceptors([authInterceptor,loaderInterceptor])
   ),
+
   ]
 };

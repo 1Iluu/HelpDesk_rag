@@ -27,7 +27,7 @@ export interface FeedbackStatsDto {
 })
 export class FeedbackApi {
 
-  private baseUrl = 'http://localhost:8081/feedback';
+  private baseUrl = 'https://rag-backend-spring-1097661750103.us-east1.run.app/feedback';
 
   constructor(private http: HttpClient) {}
 

@@ -17,7 +17,7 @@ export interface UserDTO {
 })
 export class UserManagementApi {
 
-  private baseUrl = 'http://localhost:8081/users';
+  private baseUrl = 'https://rag-backend-spring-1097661750103.us-east1.run.app/users';
 
   constructor(private http: HttpClient) {}
 

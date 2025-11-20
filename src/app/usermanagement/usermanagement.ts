@@ -37,7 +37,6 @@ export class Usermanagement implements OnInit {
   loadUsers() {
     this.api.getUsers().subscribe({
       next: (list) => {
-        console.log("BACKEND USERS:", list);
 
         const fixed = list.map(u => ({
           ...u,
