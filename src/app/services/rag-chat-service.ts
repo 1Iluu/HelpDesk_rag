@@ -4,115 +4,136 @@ import { RagChunk } from '../models/rag-chunk';
 
 @Injectable({ providedIn: 'root' })
 export class RagChatService {
-  // Configura esto a tu backend proxy (ver sección 4)
-  private baseUrl = '/api';
+
+  // 1. CAMBIO: Apuntamos directo a tu servidor Python manual
+  private pythonBaseUrl = 'http://localhost:8000';
 
   private sessionId = signal<string | null>(null);
   private controller: AbortController | null = null;
 
+  // Nota: Como el servidor manual no tiene endpoint /sessions,
+  // generamos un ID local o simplemente retornamos uno dummy por ahora.
   async ensureSession(): Promise<string> {
     const current = this.sessionId();
     if (current) return current;
 
-    const res = await fetch(`${this.baseUrl}/sessions`, { method: 'POST' });
-    if (!res.ok) throw new Error('No se pudo crear sesión');
-    const data = await res.json() as { sessionId: string };
-    this.sessionId.set(data.sessionId);
-    return data.sessionId;
+    // Generamos uno localmente para no romper la lógica del front
+    const newId = crypto.randomUUID();
+    this.sessionId.set(newId);
+    return newId;
   }
 
   /**
    * Envía el mensaje del usuario y entrega chunks en tiempo real.
-   * Devuelve un Observable<RagChunk>.
+   * 2. CAMBIO: Ahora recibe el 'role' para saber a qué puerta ir.
    */
-  streamMessage(message: string): Observable<RagChunk> {
+  streamMessage(message: string, role: string): Observable<RagChunk> {
     return new Observable<RagChunk>(observer => {
       const run = async () => {
-        const sessionId = await this.ensureSession();
-        this.controller?.abort();                     // cancela stream previo si existía
+        // Obtenemos sesión (local)
+        await this.ensureSession();
+
+        this.controller?.abort();
         this.controller = new AbortController();
 
-        const payload = { sessionId, message };
-        const res = await fetch(`${this.baseUrl}/streamQuery`, {
-          method: 'POST',
-          body: JSON.stringify(payload),
-          headers: { 'Content-Type': 'application/json' },
-          signal: this.controller.signal,
-        });
-        if (!res.ok || !res.body) {
-          observer.error(new Error('No se pudo abrir el stream'));
-          return;
-        }
+        // 3. CAMBIO: Lógica de las "Dos Puertas"
+        // Si es Admin -> /admin/run_sse
+        // Si es Cliente -> /client/run_sse
+        // (Asegúrate que 'ROLEAdmin' es exactamente como viene de tu token/base de datos)
+        const pathPrefix = (role === 'ROLEAdmin') ? '/admin' : '/client';
+        const endpoint = `${this.pythonBaseUrl}${pathPrefix}/run_sse`;
 
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
+        console.log(`🚀 Enviando a: ${endpoint}`);
 
-        const pump = async (): Promise<void> => {
-          const { value, done } = await reader.read();
-          if (done) {
-            observer.next({ text: '', partial: false, final: true });
-            observer.complete();
-            return;
+        // 4. CAMBIO: Estructura del body para el main.py manual
+        const payload = {
+          new_message: {
+             text: message
+          }
+        };
+
+        try {
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: { 'Content-Type': 'application/json' },
+            signal: this.controller.signal,
+          });
+
+          if (!res.ok) {
+            throw new Error(`Error del servidor (${res.status}): ${res.statusText}`);
           }
 
-          buffer += decoder.decode(value, { stream: true });
+          if (!res.body) {
+             throw new Error('El servidor no devolvió cuerpo de respuesta');
+          }
 
-          // Los eventos SSE se separan por \n\n
-          let idx;
-          while ((idx = buffer.indexOf('\n\n')) >= 0) {
-            const rawEvent = buffer.slice(0, idx);
-            buffer = buffer.slice(idx + 2);
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
 
-            // Solo procesamos líneas data:
-            const dataLines = rawEvent
-              .split('\n')
-              .filter(l => l.startsWith('data:'))
-              .map(l => l.slice(5).trim());
-
-            if (!dataLines.length) continue;
-
-            const joined = dataLines.join('\n');
-            if (joined === '[DONE]') {
+          const pump = async (): Promise<void> => {
+            const { value, done } = await reader.read();
+            if (done) {
               observer.next({ text: '', partial: false, final: true });
               observer.complete();
               return;
             }
 
-            try {
-              const evt = JSON.parse(joined);
-              // Normaliza texto (distintos runtimes colocan el texto en lugares diferentes)
-              const text =
-                evt.text ??
-                evt.delta ??
-                evt?.content?.text ??
-                evt?.content?.parts?.[0]?.text ??
-                '';
+            buffer += decoder.decode(value, { stream: true });
 
-              const partial =
-                evt.partial ?? evt.is_partial ?? evt.delta !== undefined;
+            // Procesamos el formato SSE manual: "data: {...} \n\n"
+            let idx;
+            while ((idx = buffer.indexOf('\n\n')) >= 0) {
+              const rawEvent = buffer.slice(0, idx);
+              buffer = buffer.slice(idx + 2);
 
-              observer.next({
-                text,
-                partial,
-                role: evt.author ?? 'model',
-                final: false,
-                raw: evt,
-              });
-            } catch {
-              // evento de ping/keepalive u otro formato: lo ignoramos
+              const dataLines = rawEvent
+                .split('\n')
+                .filter(l => l.startsWith('data:'))
+                .map(l => l.slice(5).trim());
+
+              if (!dataLines.length) continue;
+
+              const joined = dataLines.join('\n');
+
+              // Señal de fin
+              if (joined === '[DONE]') {
+                observer.next({ text: '', partial: false, final: true });
+                observer.complete();
+                return;
+              }
+
+              try {
+                const evt = JSON.parse(joined);
+                // Extraemos el texto del JSON { "text": "..." }
+                const text = evt.text ?? '';
+
+                observer.next({
+                  text,
+                  partial: true,
+                  role: 'model',
+                  final: false,
+                  raw: evt,
+                });
+              } catch (e) {
+                console.warn('Error parseando chunk JSON:', joined);
+              }
             }
-          }
+
+            await pump();
+          };
 
           await pump();
-        };
-
-        pump().catch(err => observer.error(err));
+        } catch (err: any) {
+          // Si se canceló manualmente (abort), no es un error grave
+          if (err.name === 'AbortError') return;
+          observer.error(err);
+        }
       };
 
       run();
 
-      // teardown
       return () => {
         this.controller?.abort();
       };

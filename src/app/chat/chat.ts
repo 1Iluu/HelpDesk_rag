@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RagChatService } from '../services/rag-chat-service';
 import { RagChunk } from '../models/rag-chunk';
 import { FeedbackApi, FeedbackCreateDto } from '../api/feedback.api';
+
 type Msg = { role: 'user' | 'assistant'; text: string };
 
 @Component({
@@ -168,87 +169,27 @@ type Msg = { role: 'user' | 'assistant'; text: string };
            <div>
             <p class="pb-4 text-base font-medium text-gray-900 dark:text-white">Overall rating</p>
             <div class="grid grid-cols-5 gap-3 text-center">
-                <!-- 1 -->
-                <div
-                  class="flex cursor-pointer flex-col items-center gap-2"
-                  (click)="setRating(1)">
-                  <span
-                    class="material-symbols-outlined !text-3xl"
-                    [ngClass]="feedbackRating === 1 ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'">
-                    star
-                  </span>
-                  <p
-                    class="text-sm font-medium"
-                    [ngClass]="feedbackRating === 1 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">
-                    Very bad
-                  </p>
+                <div class="flex cursor-pointer flex-col items-center gap-2" (click)="setRating(1)">
+                  <span class="material-symbols-outlined !text-3xl" [ngClass]="feedbackRating === 1 ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'">star</span>
+                  <p class="text-sm font-medium" [ngClass]="feedbackRating === 1 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">Very bad</p>
                 </div>
-
-                <!-- 2 -->
-                <div
-                  class="flex cursor-pointer flex-col items-center gap-2"
-                  (click)="setRating(2)">
-                  <span
-                    class="material-symbols-outlined !text-3xl"
-                    [ngClass]="feedbackRating === 2 ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'">
-                    star
-                  </span>
-                  <p
-                    class="text-sm font-medium"
-                    [ngClass]="feedbackRating === 2 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">
-                    Bad
-                  </p>
+                <div class="flex cursor-pointer flex-col items-center gap-2" (click)="setRating(2)">
+                  <span class="material-symbols-outlined !text-3xl" [ngClass]="feedbackRating === 2 ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'">star</span>
+                  <p class="text-sm font-medium" [ngClass]="feedbackRating === 2 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">Bad</p>
                 </div>
-
-                <!-- 3 -->
-                <div
-                  class="flex cursor-pointer flex-col items-center gap-2"
-                  (click)="setRating(3)">
-                  <span
-                    class="material-symbols-outlined !text-3xl"
-                    [ngClass]="feedbackRating === 3 ? 'text-yellow-400' : 'text-gray-400 dark:text-gray-500'">
-                    star
-                  </span>
-                  <p
-                    class="text-sm font-medium"
-                    [ngClass]="feedbackRating === 3 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">
-                    Good
-                  </p>
+                <div class="flex cursor-pointer flex-col items-center gap-2" (click)="setRating(3)">
+                  <span class="material-symbols-outlined !text-3xl" [ngClass]="feedbackRating === 3 ? 'text-yellow-400' : 'text-gray-400 dark:text-gray-500'">star</span>
+                  <p class="text-sm font-medium" [ngClass]="feedbackRating === 3 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">Good</p>
                 </div>
-
-                <!-- 4 -->
-                <div
-                  class="flex cursor-pointer flex-col items-center gap-2"
-                  (click)="setRating(4)">
-                  <span
-                    class="material-symbols-outlined !text-3xl"
-                    [ngClass]="feedbackRating === 4 ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'">
-                    star
-                  </span>
-                  <p
-                    class="text-sm font-medium"
-                    [ngClass]="feedbackRating === 4 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">
-                    Very good
-                  </p>
+                <div class="flex cursor-pointer flex-col items-center gap-2" (click)="setRating(4)">
+                  <span class="material-symbols-outlined !text-3xl" [ngClass]="feedbackRating === 4 ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'">star</span>
+                  <p class="text-sm font-medium" [ngClass]="feedbackRating === 4 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">Very good</p>
                 </div>
-
-                <!-- 5 -->
-                <div
-                  class="flex cursor-pointer flex-col items-center gap-2"
-                  (click)="setRating(5)">
-                  <span
-                    class="material-symbols-outlined !text-3xl"
-                    [ngClass]="feedbackRating === 5 ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'">
-                    star
-                  </span>
-                  <p
-                    class="text-sm font-medium"
-                    [ngClass]="feedbackRating === 5 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">
-                    Excellent
-                  </p>
+                <div class="flex cursor-pointer flex-col items-center gap-2" (click)="setRating(5)">
+                  <span class="material-symbols-outlined !text-3xl" [ngClass]="feedbackRating === 5 ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'">star</span>
+                  <p class="text-sm font-medium" [ngClass]="feedbackRating === 5 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">Excellent</p>
                 </div>
-
-              </div>
+            </div>
             </div>
             </div>
           </div>
@@ -284,10 +225,35 @@ export class ChatComponent {
   feedbackRating: number | null = null;
   submittingFeedback = false;
   sessionId = crypto.randomUUID();
+
   constructor(
     private chat: RagChatService,
     private feedbackApi: FeedbackApi,
   ) {}
+
+  // ---------------------------------------------------------------------------
+  // NUEVO: Helper para obtener el rol desde el Token (sin librerías extra)
+  // ---------------------------------------------------------------------------
+  private getUserRole(): string {
+    if (typeof window === 'undefined') return 'CLIENT'; // Check de SSR
+    const token = localStorage.getItem('token');
+    if (!token) return 'CLIENT';
+
+    try {
+      // Decodificamos la parte media del JWT (Payload)
+      const payloadBase64 = token.split('.')[1];
+      if (!payloadBase64) return 'CLIENT';
+
+      const payloadJson = atob(payloadBase64);
+      const payload = JSON.parse(payloadJson);
+
+      // Devuelve el rol o CLIENT por defecto
+      return payload.role || 'CLIENT';
+    } catch (e) {
+      console.error('Error leyendo rol del token', e);
+      return 'CLIENT';
+    }
+  }
 
   openFeedback() {
     this.showFeedbackModal.set(true);
@@ -310,7 +276,7 @@ export class ChatComponent {
     const dto: FeedbackCreateDto = {
       coment: this.feedbackComment.trim(),
       rating: this.feedbackRating,
-      chat_session: this.sessionId   
+      chat_session: this.sessionId
     };
 
     this.submittingFeedback = true;
@@ -330,7 +296,10 @@ export class ChatComponent {
       }
     });
   }
-  //chat
+
+  // ---------------------------------------------------------------------------
+  // LOGICA DEL CHAT ACTUALIZADA
+  // ---------------------------------------------------------------------------
   async send() {
     const text = this.input.trim();
     if (!text) return;
@@ -346,7 +315,12 @@ export class ChatComponent {
     const assistantIndex = this.messages().length - 1;
     this.streaming.set(true);
 
-    this.chat.streamMessage(text).subscribe({
+    // 1. Obtenemos el rol actual
+    const myRole = this.getUserRole();
+    console.log('Enviando mensaje como:', myRole);
+
+    // 2. Pasamos el rol al servicio
+    this.chat.streamMessage(text, myRole).subscribe({
       next: (chunk: RagChunk) => {
         if (chunk.text) {
           const prev = this.messages()[assistantIndex]?.text ?? '';
