@@ -6,7 +6,7 @@ import { RagChunk } from '../models/rag-chunk';
 export class RagChatService {
 
   // 1. CAMBIO: Apuntamos directo a tu servidor Python manual
-  private pythonBaseUrl = 'http://localhost:8000';
+  private pythonBaseUrl = ' https://rag-agent-python-1097661750103.us-east1.run.app';
 
   private sessionId = signal<string | null>(null);
   private controller: AbortController | null = null;
