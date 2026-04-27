@@ -221,6 +221,30 @@ export class ChatComponent {
     this.showFeedbackModal.set(false);
   }
 
+  // Función para leer el token de forma segura
+  private obtenerRolDelToken(): 'admin' | 'client' {
+    if (typeof window === 'undefined') return 'client';
+    
+    const token = localStorage.getItem('token');
+    if (!token) return 'client'; 
+
+    try {
+      
+      const payloadBase64 = token.split('.')[1];
+      const decodedPayload = JSON.parse(atob(payloadBase64));
+
+      const userRole = decodedPayload.role || decodedPayload.roles || decodedPayload.authorities || '';
+
+      if (String(userRole).toLowerCase().includes('admin')) {
+        return 'admin';
+      }
+      return 'client';
+    } catch (e) {
+      console.warn('Error decodificando el token', e);
+      return 'client';
+    }
+  }
+
   async send() {
     const text = this.input.trim();
     if (!text) return;
@@ -236,8 +260,9 @@ export class ChatComponent {
 
     const assistantIndex = this.messages().length - 1;
     this.streaming.set(true);
+    const rolSeguro = this.obtenerRolDelToken();
 
-    this.chat.streamMessage(text).subscribe({
+    this.chat.streamMessage(text, rolSeguro).subscribe({
       next: (chunk: RagChunk) => {
         if (chunk.text) {
           const prev = this.messages()[assistantIndex]?.text ?? '';

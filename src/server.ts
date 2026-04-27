@@ -52,8 +52,9 @@ app.post('/api/sessions', async (_req, res): Promise<void> => {
 // Stream de chat usando /run_sse (new_message debe ser un objeto)
 app.post('/api/streamQuery', async (req, res): Promise<void> => {
   try {
-    let { sessionId, message } = req.body ?? {};
+    let { sessionId, message, role } = req.body ?? {}; 
     console.log('[streamQuery] body recibido:', req.body);
+    console.log('🔴 DATA DESDE ANGULAR ->', { sessionId, message, role });
 
     if (!message || !String(message).trim()) {
       res.status(400).send('message requerido');
@@ -64,8 +65,11 @@ app.post('/api/streamQuery', async (req, res): Promise<void> => {
       console.log('[streamQuery] nueva sessionId:', sessionId);
     }
 
-    const RUN_SSE = `${ADK_BASE.replace(/\/+$/, '')}/run_sse`;
-
+    // 2. Elegimos la ruta correcta (admin o client) dependiendo de lo que mande Angular
+    const targetAgent = role === 'admin' ? 'admin' : 'client';
+    const RUN_SSE = `${ADK_BASE.replace(/\/+$/, '')}/${targetAgent}/run_sse`;
+    
+    console.log(`[streamQuery] Petición dirigida a: ${RUN_SSE}`); // Para que lo veas en consola
     // Variantes de "new_message" más comunes en ADK/Vertex:
     const candidateNewMessages = [
       // A) Formato Vertex "content": role + parts[].text

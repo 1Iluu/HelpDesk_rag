@@ -4,7 +4,6 @@ import { RagChunk } from '../models/rag-chunk';
 
 @Injectable({ providedIn: 'root' })
 export class RagChatService {
-  // Configura esto a tu backend proxy (ver sección 4)
   private baseUrl = '/api';
 
   private sessionId = signal<string | null>(null);
@@ -24,21 +23,25 @@ export class RagChatService {
   /**
    * Envía el mensaje del usuario y entrega chunks en tiempo real.
    * Devuelve un Observable<RagChunk>.
+   * * AGREGA EL PARÁMETRO ROLE AQUÍ (por defecto 'client')
    */
-  streamMessage(message: string): Observable<RagChunk> {
+  streamMessage(message: string, role: 'admin' | 'client' = 'client'): Observable<RagChunk> {
     return new Observable<RagChunk>(observer => {
       const run = async () => {
         const sessionId = await this.ensureSession();
-        this.controller?.abort();                     // cancela stream previo si existía
+        this.controller?.abort();                     
         this.controller = new AbortController();
 
-        const payload = { sessionId, message };
+        // <-- ¡AQUÍ ESTÁ LA MAGIA! Agregamos el role al payload
+        const payload = { sessionId, message, role }; 
+        
         const res = await fetch(`${this.baseUrl}/streamQuery`, {
           method: 'POST',
           body: JSON.stringify(payload),
           headers: { 'Content-Type': 'application/json' },
           signal: this.controller.signal,
         });
+        
         if (!res.ok || !res.body) {
           observer.error(new Error('No se pudo abrir el stream'));
           return;
@@ -58,13 +61,11 @@ export class RagChatService {
 
           buffer += decoder.decode(value, { stream: true });
 
-          // Los eventos SSE se separan por \n\n
           let idx;
           while ((idx = buffer.indexOf('\n\n')) >= 0) {
             const rawEvent = buffer.slice(0, idx);
             buffer = buffer.slice(idx + 2);
 
-            // Solo procesamos líneas data:
             const dataLines = rawEvent
               .split('\n')
               .filter(l => l.startsWith('data:'))
@@ -81,7 +82,6 @@ export class RagChatService {
 
             try {
               const evt = JSON.parse(joined);
-              // Normaliza texto (distintos runtimes colocan el texto en lugares diferentes)
               const text =
                 evt.text ??
                 evt.delta ??
@@ -100,7 +100,7 @@ export class RagChatService {
                 raw: evt,
               });
             } catch {
-              // evento de ping/keepalive u otro formato: lo ignoramos
+              // ignorar
             }
           }
 
@@ -112,7 +112,6 @@ export class RagChatService {
 
       run();
 
-      // teardown
       return () => {
         this.controller?.abort();
       };
