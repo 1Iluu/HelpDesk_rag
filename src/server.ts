@@ -54,7 +54,7 @@ app.post('/api/streamQuery', async (req, res): Promise<void> => {
   try {
     let { sessionId, message, role } = req.body ?? {}; 
     console.log('[streamQuery] body recibido:', req.body);
-    console.log('🔴 DATA DESDE ANGULAR ->', { sessionId, message, role });
+    //console.log('🔴 DATA DESDE ANGULAR ->', { sessionId, message, role });
 
     if (!message || !String(message).trim()) {
       res.status(400).send('message requerido');
