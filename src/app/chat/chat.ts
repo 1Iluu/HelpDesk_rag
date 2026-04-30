@@ -4,13 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { RagChatService } from '../services/rag-chat-service';
 import { RagChunk } from '../models/rag-chunk';
 import { FeedbackApi, FeedbackCreateDto } from '../api/feedback.api';
+import { MarkdownModule } from 'ngx-markdown';
+
 
 type Msg = { role: 'user' | 'assistant'; text: string };
 
 @Component({
   standalone: true,
   selector: 'app-chat',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule,MarkdownModule],
   host: { class: 'flex flex-col flex-1 min-h-0' },
   template: `
     <div class="flex-1 flex flex-col min-h-0">
@@ -65,13 +67,18 @@ type Msg = { role: 'user' | 'assistant'; text: string };
                     {{ m.role === 'user' ? 'You' : 'Help Desk AI' }}
                   </p>
 
-                  <p
-                    class="text-sm rounded-lg px-4 py-2.5 whitespace-pre-wrap"
+                  <div
+                    class="text-sm rounded-lg px-4 py-2.5"
                     [ngClass]="m.role === 'user'
                         ? 'bg-primary text-white'
                         : 'bg-gray-100 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200'">
-                    {{ m.text }}
-                  </p>
+                    
+                    <!-- Markdown solo para el asistente -->
+                    <markdown *ngIf="m.role === 'assistant'" [data]="m.text" class="markdown-body" />
+                    
+                    <!-- Texto plano para el usuario -->
+                    <span *ngIf="m.role === 'user'" class="whitespace-pre-wrap">{{ m.text }}</span>
+                  </div>
                 </div>
               </div>
             </ng-container>

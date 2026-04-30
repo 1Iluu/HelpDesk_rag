@@ -5,11 +5,16 @@ import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { authInterceptor } from './auth/auth.interceptor';
 import { loaderInterceptor } from './interceptors/loader.interceptor';
+import { provideMarkdown } from 'ngx-markdown'; // ← agregar
+
+
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes),
+    provideMarkdown(), // ← agregar
     provideClientHydration(withEventReplay()),
     provideHttpClient(
       withFetch(),

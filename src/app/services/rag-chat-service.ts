@@ -6,7 +6,8 @@ import { RagChunk } from '../models/rag-chunk';
 export class RagChatService {
 
   // 1. CAMBIO: Apuntamos directo a tu servidor Python manual
-  private pythonBaseUrl = ' https://rag-agent-python-1097661750103.us-east1.run.app';
+  //private pythonBaseUrl = ' https://rag-agent-python-1097661750103.us-east1.run.app';
+  private pythonBaseUrl = 'http://localhost:8000';
 
   private sessionId = signal<string | null>(null);
   private controller: AbortController | null = null;
@@ -36,16 +37,13 @@ export class RagChatService {
         this.controller?.abort();
         this.controller = new AbortController();
 
-        // 3. CAMBIO: Lógica de las "Dos Puertas"
         // Si es Admin -> /admin/run_sse
         // Si es Cliente -> /client/run_sse
-        // (Asegúrate que 'ROLEAdmin' es exactamente como viene de tu token/base de datos)
         const pathPrefix = (role === 'ROLEAdmin') ? '/admin' : '/client';
         const endpoint = `${this.pythonBaseUrl}${pathPrefix}/run_sse`;
 
         console.log(`🚀 Enviando a: ${endpoint}`);
 
-        // 4. CAMBIO: Estructura del body para el main.py manual
         const payload = {
           new_message: {
              text: message
