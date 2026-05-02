@@ -22,6 +22,8 @@ import { AuthService } from '../services/auth.service';
 
     <nav class="flex-1 px-4 py-6">
       <ul class="space-y-2">
+        
+        <!-- CHATBOT (Visible para todos) -->
         <li>
           <a routerLink="/app/chat"
              routerLinkActive="bg-primary/10 text-primary font-semibold"
@@ -31,7 +33,18 @@ import { AuthService } from '../services/auth.service';
             <span>Chatbot</span>
           </a>
         </li>
-        <li *ngIf="userRole !== 'ROLEUser'">
+
+        <li *ngIf="userRole === 'ROLEAgent' || userRole === 'ROLEAdmin' || userRole === 'Agent' || userRole === 'Admin'">
+          <a routerLink="/app/agent-dashboard"
+             routerLinkActive="bg-primary/10 text-primary font-semibold"
+             class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50 text-sm">
+            <span class="material-symbols-outlined text-xl">support_agent</span>
+            <span>Agent Dashboard</span>
+          </a>
+        </li>
+
+        <!-- NPS METRICS -->
+        <li *ngIf="userRole !== 'ROLEUser' && userRole !== 'User'">
           <a routerLink="/app/nps"
              routerLinkActive="bg-primary/10 text-primary font-semibold"
              class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50 text-sm">
@@ -39,7 +52,9 @@ import { AuthService } from '../services/auth.service';
             <span>NPS Metrics</span>
           </a>
         </li>
-        <li *ngIf="userRole === 'ROLEAdmin'">
+
+        <!-- USER MANAGEMENT -->
+        <li *ngIf="userRole === 'ROLEAdmin' || userRole === 'Admin'">
           <a routerLink="/app/users"
              routerLinkActive="bg-primary/10 text-primary font-semibold"
              class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50 text-sm">
@@ -47,17 +62,18 @@ import { AuthService } from '../services/auth.service';
             <span>User Management</span>
           </a>
         </li>
+
       </ul>
     </nav>
 
-<div class="mt-auto px-4 pb-4">
-  <button
-    (click)="onLogout()"
-    class="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 text-sm">
-    <span class="material-symbols-outlined">logout</span>
-    <span>Logout</span>
-  </button>
-</div>
+    <div class="mt-auto px-4 pb-4">
+      <button
+        (click)="onLogout()"
+        class="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 text-sm">
+        <span class="material-symbols-outlined">logout</span>
+        <span>Logout</span>
+      </button>
+    </div>
   </aside>
   `
 })
@@ -99,7 +115,8 @@ export class Sidebar {
       console.error("Error al decodificar token", e);
     }
   }
-   onLogout() {
+
+  onLogout() {
     this.authService.logout();  
   }
 }

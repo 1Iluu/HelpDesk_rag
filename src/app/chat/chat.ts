@@ -4,15 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { RagChatService } from '../services/rag-chat-service';
 import { RagChunk } from '../models/rag-chunk';
 import { FeedbackApi, FeedbackCreateDto } from '../api/feedback.api';
+import { TicketApi, SupportTicketDto } from '../api/ticket.api';
 import { MarkdownModule } from 'ngx-markdown';
-
 
 type Msg = { role: 'user' | 'assistant'; text: string };
 
 @Component({
   standalone: true,
   selector: 'app-chat',
-  imports: [CommonModule, FormsModule,MarkdownModule],
+  imports: [CommonModule, FormsModule, MarkdownModule],
   host: { class: 'flex flex-col flex-1 min-h-0' },
   template: `
     <div class="flex-1 flex flex-col min-h-0">
@@ -39,12 +39,28 @@ type Msg = { role: 'user' | 'assistant'; text: string };
               </p>
             </div>
 
-            <button
-              (click)="openFeedback()"
-              class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50">
-              <span class="material-symbols-outlined text-base">star</span>
-              <span>Feedback</span>
-            </button>
+            <!-- Contenedor de botones superior -->
+            <div class="flex items-center gap-3">
+              
+              <!-- 👇 2. NUEVO BOTÓN DE ESCALAR A HUMANO -->
+              <button
+                *ngIf="messages().length > 2" 
+                (click)="escalarAgente()"
+                [disabled]="escalando"
+                class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40 disabled:opacity-50">
+                <span class="material-symbols-outlined text-base">support_agent</span>
+                <span>{{ escalando ? 'Conectando...' : 'Contactar Humano' }}</span>
+              </button>
+
+              <!-- Botón de Feedback original -->
+              <button
+                (click)="openFeedback()"
+                class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50">
+                <span class="material-symbols-outlined text-base">star</span>
+                <span>Feedback</span>
+              </button>
+            </div>
+            
           </div>
 
           <div class="flex-1 min-h-0 p-4 space-y-4 overflow-y-auto">
@@ -73,10 +89,7 @@ type Msg = { role: 'user' | 'assistant'; text: string };
                         ? 'bg-primary text-white'
                         : 'bg-gray-100 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200'">
                     
-                    <!-- Markdown solo para el asistente -->
                     <markdown *ngIf="m.role === 'assistant'" [data]="m.text" class="markdown-body" />
-                    
-                    <!-- Texto plano para el usuario -->
                     <span *ngIf="m.role === 'user'" class="whitespace-pre-wrap">{{ m.text }}</span>
                   </div>
                 </div>
@@ -141,6 +154,7 @@ type Msg = { role: 'user' | 'assistant'; text: string };
       </section>
     </div>
 
+    <!-- MODAL DE FEEDBACK (Mantenido intacto) -->
     <ng-container *ngIf="showFeedbackModal()">
       <div
         (click)="closeFeedback()"
@@ -148,64 +162,132 @@ type Msg = { role: 'user' | 'assistant'; text: string };
       </div>
 
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl rounded-xl bg-[#f6f7f8] dark:bg-[#111a22] shadow-2xl dark:shadow-black/50 overflow-hidden flex flex-col max-h-[90vh]">
 
-        <div class="w-full max-w-lg rounded-xl bg-[#f6f7f8] dark:bg-[#111a22] shadow-2xl dark:shadow-black/50 overflow-hidden">
-
-          <div class="flex items-start justify-between border-b border-gray-200 dark:border-gray-800 p-6">
+          <div class="flex items-start justify-between border-b border-gray-200 dark:border-gray-800 p-6 shrink-0">
             <div class="flex flex-col gap-1">
-              <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Rate your experience</h1>
-              <p class="text-base text-gray-500 dark:text-gray-400">How was your interaction with the Help Desk AI?</p>
+              <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Evalúa tu experiencia</h1>
+              <p class="text-base text-gray-500 dark:text-gray-400">Ayúdanos a mejorar las respuestas del Help Desk AI.</p>
             </div>
             <button (click)="closeFeedback()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
               <span class="material-symbols-outlined !text-2xl">close</span>
             </button>
           </div>
 
-          <div class="p-6">
+          <div class="p-6 overflow-y-auto">
             <div class="flex flex-col gap-6">
-              <label class="flex flex-col w-full">
-                <p class="pb-2 text-base font-medium text-gray-900 dark:text-white">Your feedback</p>
-               <textarea
+              
+              <!-- RATING GENERAL -->
+              <div>
+                <p class="pb-4 text-base font-medium text-gray-900 dark:text-white">Overall rating</p>
+                <div class="grid grid-cols-5 gap-3 text-center mb-4 border-b border-gray-200 dark:border-gray-800 pb-6">
+                  <div class="flex cursor-pointer flex-col items-center gap-2" (click)="setRating(1)">
+                    <span class="material-symbols-outlined !text-3xl" [ngClass]="feedbackRating === 1 ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'">star</span>
+                    <p class="text-sm font-medium" [ngClass]="feedbackRating === 1 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">Very bad</p>
+                  </div>
+                  <div class="flex cursor-pointer flex-col items-center gap-2" (click)="setRating(2)">
+                    <span class="material-symbols-outlined !text-3xl" [ngClass]="feedbackRating === 2 ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'">star</span>
+                    <p class="text-sm font-medium" [ngClass]="feedbackRating === 2 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">Bad</p>
+                  </div>
+                  <div class="flex cursor-pointer flex-col items-center gap-2" (click)="setRating(3)">
+                    <span class="material-symbols-outlined !text-3xl" [ngClass]="feedbackRating === 3 ? 'text-yellow-400' : 'text-gray-400 dark:text-gray-500'">star</span>
+                    <p class="text-sm font-medium" [ngClass]="feedbackRating === 3 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">Good</p>
+                  </div>
+                  <div class="flex cursor-pointer flex-col items-center gap-2" (click)="setRating(4)">
+                    <span class="material-symbols-outlined !text-3xl" [ngClass]="feedbackRating === 4 ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'">star</span>
+                    <p class="text-sm font-medium" [ngClass]="feedbackRating === 4 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">Very good</p>
+                  </div>
+                  <div class="flex cursor-pointer flex-col items-center gap-2" (click)="setRating(5)">
+                    <span class="material-symbols-outlined !text-3xl" [ngClass]="feedbackRating === 5 ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'">star</span>
+                    <p class="text-sm font-medium" [ngClass]="feedbackRating === 5 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">Excellent</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PREGUNTAS -->
+              <div class="space-y-5">
+                <div>
+                  <div class="flex justify-between mb-2">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">1. ¿Qué tan precisas y basadas en los manuales fueron las respuestas?</p>
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    <button *ngFor="let n of scale" (click)="scores.q1 = n"
+                      [ngClass]="scores.q1 === n ? 'bg-primary border-primary text-white' : 'bg-white dark:bg-[#192633] text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800'"
+                      class="flex-1 min-w-[40px] h-10 flex items-center justify-center rounded-lg border text-sm font-semibold transition-all">
+                      {{n}}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between mb-2">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">2. ¿Qué tan lógicas, claras y fáciles de entender fueron las explicaciones?</p>
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    <button *ngFor="let n of scale" (click)="scores.q2 = n"
+                      [ngClass]="scores.q2 === n ? 'bg-primary border-primary text-white' : 'bg-white dark:bg-[#192633] text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800'"
+                      class="flex-1 min-w-[40px] h-10 flex items-center justify-center rounded-lg border text-sm font-semibold transition-all">
+                      {{n}}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between mb-2">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">3. ¿Qué tanto te ayudó a resolver tu duda o problema técnico?</p>
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    <button *ngFor="let n of scale" (click)="scores.q3 = n"
+                      [ngClass]="scores.q3 === n ? 'bg-primary border-primary text-white' : 'bg-white dark:bg-[#192633] text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800'"
+                      class="flex-1 min-w-[40px] h-10 flex items-center justify-center rounded-lg border text-sm font-semibold transition-all">
+                      {{n}}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between mb-2">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">4. ¿Qué tan directo fue para entregarte la información?</p>
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    <button *ngFor="let n of scale" (click)="scores.q4 = n"
+                      [ngClass]="scores.q4 === n ? 'bg-primary border-primary text-white' : 'bg-white dark:bg-[#192633] text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800'"
+                      class="flex-1 min-w-[40px] h-10 flex items-center justify-center rounded-lg border text-sm font-semibold transition-all">
+                      {{n}}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between mb-2">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">5. ¿Qué tan natural y profesional sentiste la conversación?</p>
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    <button *ngFor="let n of scale" (click)="scores.q5 = n"
+                      [ngClass]="scores.q5 === n ? 'bg-primary border-primary text-white' : 'bg-white dark:bg-[#192633] text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800'"
+                      class="flex-1 min-w-[40px] h-10 flex items-center justify-center rounded-lg border text-sm font-semibold transition-all">
+                      {{n}}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- COMENTARIO ADICIONAL -->
+              <label class="flex flex-col w-full mt-2">
+                <p class="pb-2 text-base font-medium text-gray-900 dark:text-white">Comentario adicional (opcional)</p>
+                <textarea
                   name="feedbackComment"
                   [(ngModel)]="feedbackComment"
                   class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#192633] p-4 text-base font-normal leading-normal text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/30"
-                  placeholder="Tell us what you liked or what could be improved..."
-                  rows="4">
+                  placeholder="Cuéntanos más sobre tu experiencia..."
+                  rows="3">
                 </textarea>
               </label>
-           <div>
-            <p class="pb-4 text-base font-medium text-gray-900 dark:text-white">Overall rating</p>
-            <div class="grid grid-cols-5 gap-3 text-center">
-                <div class="flex cursor-pointer flex-col items-center gap-2" (click)="setRating(1)">
-                  <span class="material-symbols-outlined !text-3xl" [ngClass]="feedbackRating === 1 ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'">star</span>
-                  <p class="text-sm font-medium" [ngClass]="feedbackRating === 1 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">Very bad</p>
-                </div>
-                <div class="flex cursor-pointer flex-col items-center gap-2" (click)="setRating(2)">
-                  <span class="material-symbols-outlined !text-3xl" [ngClass]="feedbackRating === 2 ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'">star</span>
-                  <p class="text-sm font-medium" [ngClass]="feedbackRating === 2 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">Bad</p>
-                </div>
-                <div class="flex cursor-pointer flex-col items-center gap-2" (click)="setRating(3)">
-                  <span class="material-symbols-outlined !text-3xl" [ngClass]="feedbackRating === 3 ? 'text-yellow-400' : 'text-gray-400 dark:text-gray-500'">star</span>
-                  <p class="text-sm font-medium" [ngClass]="feedbackRating === 3 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">Good</p>
-                </div>
-                <div class="flex cursor-pointer flex-col items-center gap-2" (click)="setRating(4)">
-                  <span class="material-symbols-outlined !text-3xl" [ngClass]="feedbackRating === 4 ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'">star</span>
-                  <p class="text-sm font-medium" [ngClass]="feedbackRating === 4 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">Very good</p>
-                </div>
-                <div class="flex cursor-pointer flex-col items-center gap-2" (click)="setRating(5)">
-                  <span class="material-symbols-outlined !text-3xl" [ngClass]="feedbackRating === 5 ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'">star</span>
-                  <p class="text-sm font-medium" [ngClass]="feedbackRating === 5 ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">Excellent</p>
-                </div>
-            </div>
-            </div>
+
             </div>
           </div>
-          <div
-            class="flex flex-row-reverse items-center justify-start gap-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-black/20 p-6">
+
+          <div class="flex flex-row-reverse items-center justify-start gap-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-black/20 p-6 shrink-0">
             <button
               (click)="submitFeedback()"
-              [disabled]="submittingFeedback || !feedbackRating || !feedbackComment.trim()"
-              class="rounded-lg bg-primary px-5 py-2.5 text-base font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-60">
+              [disabled]="submittingFeedback || !isFormComplete()"
+              class="rounded-lg bg-primary px-5 py-2.5 text-base font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed">
               {{ submittingFeedback ? 'Sending...' : 'Submit' }}
             </button>
 
@@ -228,33 +310,39 @@ export class ChatComponent {
   streaming = signal(false);
 
   showFeedbackModal = signal(false);
-  feedbackComment = '';
+  
   feedbackRating: number | null = null;
+
+  scale = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  scores = {
+    q1: null as number | null,
+    q2: null as number | null,
+    q3: null as number | null,
+    q4: null as number | null,
+    q5: null as number | null
+  };
+  feedbackComment = '';
   submittingFeedback = false;
   sessionId = crypto.randomUUID();
+
+  escalando = false;
 
   constructor(
     private chat: RagChatService,
     private feedbackApi: FeedbackApi,
+    private ticketApi: TicketApi 
   ) {}
 
-  // ---------------------------------------------------------------------------
-  // NUEVO: Helper para obtener el rol desde el Token (sin librerías extra)
-  // ---------------------------------------------------------------------------
   private getUserRole(): string {
-    if (typeof window === 'undefined') return 'CLIENT'; // Check de SSR
+    if (typeof window === 'undefined') return 'CLIENT';
     const token = localStorage.getItem('token');
     if (!token) return 'CLIENT';
 
     try {
-      // Decodificamos la parte media del JWT (Payload)
       const payloadBase64 = token.split('.')[1];
       if (!payloadBase64) return 'CLIENT';
-
       const payloadJson = atob(payloadBase64);
       const payload = JSON.parse(payloadJson);
-
-      // Devuelve el rol o CLIENT por defecto
       return payload.role || 'CLIENT';
     } catch (e) {
       console.error('Error leyendo rol del token', e);
@@ -262,28 +350,104 @@ export class ChatComponent {
     }
   }
 
+  // 👇 5. LÓGICA PARA ESCALAR A HUMANO
+  escalarAgente() {
+    this.escalando = true;
+
+    // Recopilamos el historial del chat
+    const historialCompleto = this.messages()
+      .map(m => `${m.role === 'user' ? 'Usuario' : 'Help Desk AI'}: ${m.text}`)
+      .join('\n\n');
+
+    // Le pedimos a la IA que nos haga un resumen rápido de lo que pasó
+    const promptResumen = `Por favor, actúa como un analista de soporte técnico. Lee el siguiente historial de chat y genera un resumen muy breve (máximo 3 líneas) del problema técnico que el usuario no pudo resolver. Historial: \n\n${historialCompleto}`;
+
+    let aiSummaryGenerado = '';
+    
+    // Usamos el mismo chat service para pedir el resumen en background
+    this.chat.streamMessage(promptResumen, this.getUserRole()).subscribe({
+      next: (chunk: RagChunk) => {
+        if (chunk.text) {
+          aiSummaryGenerado += chunk.text;
+        }
+      },
+      complete: () => {
+        // Armamos el objeto para enviarlo a Spring Boot
+        const dto: SupportTicketDto = {
+          chatSession: this.sessionId,
+          chatHistory: historialCompleto,
+          aiSummary: aiSummaryGenerado || 'El usuario solicitó asistencia humana para un problema técnico no especificado.',
+          // TODO: Si en tu token o localStorage guardas el ID del usuario, cámbialo aquí.
+          // Por ahora le ponemos 1 para asegurar que guarde en la BD.
+          userId: 1 
+        };
+
+        // Enviamos el ticket a tu API
+        this.ticketApi.escalarTicket(dto).subscribe({
+          next: () => {
+            this.escalando = false;
+            
+            // Le avisamos al usuario en la pantalla
+            this.messages.update((arr) => [
+              ...arr,
+              { role: 'assistant', text: '🚨 **He notificado a nuestro equipo de soporte humano.** Un agente revisará el resumen de nuestro chat y se pondrá en contacto contigo por correo electrónico a la brevedad posible.' }
+            ]);
+          },
+          error: (err) => {
+            this.escalando = false;
+            console.error('Error al escalar el ticket', err);
+            alert('Ocurrió un error al intentar contactar al agente. Inténtalo de nuevo.');
+          }
+        });
+      },
+      error: (err) => {
+        this.escalando = false;
+        console.error('Error al generar resumen IA', err);
+        alert('Ocurrió un error de red al procesar tu solicitud.');
+      }
+    });
+  }
+
   openFeedback() {
     this.showFeedbackModal.set(true);
   }
 
   closeFeedback() {
-    this.feedbackComment = '';
-    this.feedbackRating = null;
+    this.resetFeedbackForm();
     this.showFeedbackModal.set(false);
   }
+
   setRating(value: number) {
     this.feedbackRating = value;
   }
 
-   submitFeedback() {
-    if (!this.feedbackRating || !this.feedbackComment.trim()) {
-      return;
-    }
+  isFormComplete(): boolean {
+    return this.feedbackRating !== null &&
+           this.scores.q1 !== null && 
+           this.scores.q2 !== null && 
+           this.scores.q3 !== null && 
+           this.scores.q4 !== null && 
+           this.scores.q5 !== null;
+  }
+
+  resetFeedbackForm() {
+    this.feedbackRating = null;
+    this.scores = { q1: null, q2: null, q3: null, q4: null, q5: null };
+    this.feedbackComment = '';
+  }
+
+  submitFeedback() {
+    if (!this.isFormComplete()) return;
 
     const dto: FeedbackCreateDto = {
-      coment: this.feedbackComment.trim(),
-      rating: this.feedbackRating,
-      chat_session: this.sessionId
+      coment: this.feedbackComment.trim() || 'Sin comentario',
+      chat_session: this.sessionId,
+      rating: this.feedbackRating!,
+      q1_precision: this.scores.q1!,
+      q2_coherencia: this.scores.q2!,
+      q3_resolucion: this.scores.q3!,
+      q4_eficiencia: this.scores.q4!,
+      q5_tono: this.scores.q5!
     };
 
     this.submittingFeedback = true;
@@ -291,8 +455,7 @@ export class ChatComponent {
     this.feedbackApi.createFeedback(dto).subscribe({
       next: () => {
         this.submittingFeedback = false;
-        this.feedbackComment = '';
-        this.feedbackRating = null;
+        this.resetFeedbackForm();
         this.showFeedbackModal.set(false);
         alert('¡Gracias por tu feedback!');
       },
@@ -304,9 +467,6 @@ export class ChatComponent {
     });
   }
 
-  // ---------------------------------------------------------------------------
-  // LOGICA DEL CHAT ACTUALIZADA
-  // ---------------------------------------------------------------------------
   async send() {
     const text = this.input.trim();
     if (!text) return;
@@ -322,11 +482,8 @@ export class ChatComponent {
     const assistantIndex = this.messages().length - 1;
     this.streaming.set(true);
 
-    // 1. Obtenemos el rol actual
     const myRole = this.getUserRole();
-    console.log('Enviando mensaje como:', myRole);
 
-    // 2. Pasamos el rol al servicio
     this.chat.streamMessage(text, myRole).subscribe({
       next: (chunk: RagChunk) => {
         if (chunk.text) {

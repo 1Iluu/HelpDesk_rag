@@ -27,6 +27,12 @@ export const routes: Routes = [
         loadComponent: () => import('./usermanagement/usermanagement').then(m => m.Usermanagement),
         title: 'User Management'
       },
+    
+      {
+        path: 'agent-dashboard',
+        loadComponent: () => import('./agent-dashboard/agent-dashboard').then(m => m.AgentDashboardComponent),
+        title: 'Agent Dashboard'
+      },
       { path: '', pathMatch: 'full', redirectTo: 'chat' },
     ]
   },

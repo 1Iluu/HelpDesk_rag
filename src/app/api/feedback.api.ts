@@ -6,6 +6,11 @@ export interface FeedbackCreateDto {
   coment: string;
   rating: number;
   chat_session: string;
+  q1_precision: number;
+  q2_coherencia: number;
+  q3_resolucion: number;
+  q4_eficiencia: number;
+  q5_tono: number;
   
 }
 export interface FeedbackStatsDto {
