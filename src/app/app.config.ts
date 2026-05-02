@@ -14,7 +14,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes),
-    provideMarkdown(), // ← agregar
+    provideMarkdown(), 
     provideClientHydration(withEventReplay()),
     provideHttpClient(
       withFetch(),

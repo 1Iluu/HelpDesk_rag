@@ -16,8 +16,8 @@ export interface SupportTicketDto {
   providedIn: 'root'
 })
 export class TicketApi {
-  // Ajusta el puerto si es diferente
-  private baseUrl = 'http://localhost:8081/tickets';
+   private baseUrl = ' https://helpdesk-backend-997951057443.us-east1.run.app/tickets';
+  //private baseUrl = 'http://localhost:8081/tickets';
 
   constructor(private http: HttpClient) {}
 

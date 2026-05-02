@@ -377,8 +377,6 @@ export class ChatComponent {
           chatSession: this.sessionId,
           chatHistory: historialCompleto,
           aiSummary: aiSummaryGenerado || 'El usuario solicitó asistencia humana para un problema técnico no especificado.',
-          // TODO: Si en tu token o localStorage guardas el ID del usuario, cámbialo aquí.
-          // Por ahora le ponemos 1 para asegurar que guarde en la BD.
           userId: 1 
         };
 
