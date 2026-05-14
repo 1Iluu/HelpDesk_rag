@@ -220,7 +220,7 @@ type Msg = { role: 'user' | 'assistant'; text: string };
                 </div>
                 <div>
                   <div class="flex justify-between mb-2">
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">2. ¿Qué tan rapido o fluido fue la interaccion con el asistentecl?</p>
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">2. ¿Qué tan rápida o fluida fue la interacción con el asistente?</p>
                   </div>
                   <div class="flex flex-wrap gap-2">
                     <button *ngFor="let n of scale" (click)="scores.q2 = n"

@@ -1,25 +1,14 @@
-# Usamos una imagen de Node.js ligera
-FROM node:20-alpine
-
-# Directorio de trabajo dentro de la nube
+FROM node:18-alpine
 WORKDIR /app
 
-# 1. Copiamos los archivos de configuración primero (para aprovechar el caché)
-COPY package*.json ./
+# 1. Copiamos tu carpeta dist
+COPY dist ./dist
 
-# 2. Instalamos las dependencias
-RUN npm install
+# 2. Instalamos serve
+RUN npm install -g serve
 
-# 3. Copiamos todo el código fuente de tu Angular
-COPY . .
+# 3. EL TRUCO DE MAGIA: Renombramos ese archivo .csr a index.html normal
+RUN mv dist/HelpDesk/browser/index.csr.html dist/HelpDesk/browser/index.html
 
-# 4. Construimos la aplicación (Esto generará la carpeta dist/HelpDesk)
-RUN npm run build
-
-# 5. Configuración del puerto para Cloud Run
-ENV PORT=8080
-EXPOSE 8080
-
-# 6. EL COMANDO DE ARRANQUE (Aquí está la clave según tu foto)
-# Le decimos a Node que ejecute el archivo server.mjs que se generó
-CMD ["node", "dist/HelpDesk/server/server.mjs"]
+# 4. Levantamos el servidor en modo SPA
+CMD ["serve", "-s", "dist/HelpDesk/browser", "-l", "80"]
