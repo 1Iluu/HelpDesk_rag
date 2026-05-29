@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal,ChangeDetectorRef,AfterViewChecked } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { LoaderService } from './services/loader.service';
@@ -8,9 +8,16 @@ import { LoaderService } from './services/loader.service';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
+export class App implements AfterViewChecked {
   protected readonly title = signal('HelpDesk RAG');
-  constructor(public loaderService: LoaderService) {}
+
+  constructor(
+    public loaderService: LoaderService,
+    private cdRef: ChangeDetectorRef
+  ){}
+   ngAfterViewChecked(): void {
+    this.cdRef.detectChanges();
+  }
 }
 
 

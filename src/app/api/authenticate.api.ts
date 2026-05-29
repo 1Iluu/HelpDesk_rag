@@ -6,8 +6,8 @@ import { HttpClient } from '@angular/common/http';
 })
 export class AuthenticaApi {
 
-  baseUrl = 'https://helpdesk-backend-997951057443.us-east1.run.app';
-  //baseUrl = 'http://localhost:8081';
+  //baseUrl = 'https://helpdesk-backend-997951057443.us-east1.run.app';
+  baseUrl = 'http://localhost:8081';
 
   constructor(private http: HttpClient) {}
 

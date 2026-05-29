@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal,OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RagChatService } from '../services/rag-chat-service';
@@ -6,6 +6,9 @@ import { RagChunk } from '../models/rag-chunk';
 import { FeedbackApi, FeedbackCreateDto } from '../api/feedback.api';
 import { TicketApi, SupportTicketDto } from '../api/ticket.api';
 import { MarkdownModule } from 'ngx-markdown';
+import { HttpClient } from '@angular/common/http';
+import { ChatStateService } from '../services/chat-state.service'; 
+
 
 type Msg = { role: 'user' | 'assistant'; text: string };
 
@@ -42,7 +45,6 @@ type Msg = { role: 'user' | 'assistant'; text: string };
             <!-- Contenedor de botones superior -->
             <div class="flex items-center gap-3">
               
-              <!-- 👇 2. NUEVO BOTÓN DE ESCALAR A HUMANO -->
               <button
                 *ngIf="messages().length > 2" 
                 (click)="escalarAgente()"
@@ -208,7 +210,7 @@ type Msg = { role: 'user' | 'assistant'; text: string };
               <div class="space-y-5">
                 <div>
                   <div class="flex justify-between mb-2">
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">1. ¿Qué tan precisas y basadas en los manuales fueron las respuestas?</p>
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">1. ¿Que tan facil de usar te pareció la aplicacion Help Desk AI?</p>
                   </div>
                   <div class="flex flex-wrap gap-2">
                     <button *ngFor="let n of scale" (click)="scores.q1 = n"
@@ -220,7 +222,7 @@ type Msg = { role: 'user' | 'assistant'; text: string };
                 </div>
                 <div>
                   <div class="flex justify-between mb-2">
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">2. ¿Qué tan rápida o fluida fue la interacción con el asistente?</p>
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">2. ¿Qué tan precisas y basadas en los manuales fueron las respuestas?</p>
                   </div>
                   <div class="flex flex-wrap gap-2">
                     <button *ngFor="let n of scale" (click)="scores.q2 = n"
@@ -232,7 +234,7 @@ type Msg = { role: 'user' | 'assistant'; text: string };
                 </div>
                 <div>
                   <div class="flex justify-between mb-2">
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">3. ¿Qué tanto te ayudó a resolver tu duda o problema técnico?</p>
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">3. ¿Qué tan rápida o fluida fue la interacción con Help Desk AI?</p>
                   </div>
                   <div class="flex flex-wrap gap-2">
                     <button *ngFor="let n of scale" (click)="scores.q3 = n"
@@ -244,7 +246,7 @@ type Msg = { role: 'user' | 'assistant'; text: string };
                 </div>
                 <div>
                   <div class="flex justify-between mb-2">
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">4. ¿Qué tan directo fue para entregarte la información?</p>
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">4. ¿Qué tan natural y profesional sentiste la conversación?</p>
                   </div>
                   <div class="flex flex-wrap gap-2">
                     <button *ngFor="let n of scale" (click)="scores.q4 = n"
@@ -256,7 +258,7 @@ type Msg = { role: 'user' | 'assistant'; text: string };
                 </div>
                 <div>
                   <div class="flex justify-between mb-2">
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">5. ¿Qué tan natural y profesional sentiste la conversación?</p>
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">5. ¿Qué tanto te ayudó a resolver tu duda o problema técnico?</p>
                   </div>
                   <div class="flex flex-wrap gap-2">
                     <button *ngFor="let n of scale" (click)="scores.q5 = n"
@@ -304,13 +306,10 @@ type Msg = { role: 'user' | 'assistant'; text: string };
     </ng-container>
   `,
 })
-export class ChatComponent {
-  input = '';
-  messages = signal<Msg[]>([]);
-  streaming = signal(false);
+export class ChatComponent implements OnInit{
 
+  input = '';
   showFeedbackModal = signal(false);
-  
   feedbackRating: number | null = null;
 
   scale = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -323,15 +322,38 @@ export class ChatComponent {
   };
   feedbackComment = '';
   submittingFeedback = false;
-  sessionId = crypto.randomUUID();
-
   escalando = false;
+
+ get messages() { return this.chatState.messages; }
+  get streaming() { return this.chatState.streaming; }
+  get sessionId() { return this.chatState.sessionId; }
 
   constructor(
     private chat: RagChatService,
     private feedbackApi: FeedbackApi,
-    private ticketApi: TicketApi 
+    private ticketApi: TicketApi,
+    private http: HttpClient,
+    private chatState: ChatStateService
   ) {}
+
+    ngOnInit() {
+    if (!this.chatState.isSessionRegistered) {
+      this.iniciarNuevaSesion();
+    }
+  }
+    iniciarNuevaSesion() {
+    const payload = {
+      chatSessionId: this.sessionId
+    };
+    this.http.post('http://localhost:8081/sessions/start', payload)
+    //this.http.post('https://helpdesk-backend-997951057443.us-east1.run.app/sessions/start', payload)
+      .subscribe({
+        next: () =>{ console.log('✅ Sesión registrada para la métrica de deflexión');
+        this.chatState.isSessionRegistered = true;
+      },
+        error: (err) => console.error('🚨 Error registrando la sesión', err)
+      });
+  }
 
   private getUserRole(): string {
     if (typeof window === 'undefined') return 'CLIENT';
@@ -350,7 +372,6 @@ export class ChatComponent {
     }
   }
 
-  // 👇 5. LÓGICA PARA ESCALAR A HUMANO
   escalarAgente() {
     this.escalando = true;
 
@@ -359,12 +380,9 @@ export class ChatComponent {
       .map(m => `${m.role === 'user' ? 'Usuario' : 'Help Desk AI'}: ${m.text}`)
       .join('\n\n');
 
-    // Le pedimos a la IA que nos haga un resumen rápido de lo que pasó
     const promptResumen = `Por favor, actúa como un analista de soporte técnico. Lee el siguiente historial de chat y genera un resumen muy breve (máximo 3 líneas) del problema técnico que el usuario no pudo resolver. Historial: \n\n${historialCompleto}`;
-
     let aiSummaryGenerado = '';
     
-    // Usamos el mismo chat service para pedir el resumen en background
     this.chat.streamMessage(promptResumen, this.getUserRole()).subscribe({
       next: (chunk: RagChunk) => {
         if (chunk.text) {
@@ -372,9 +390,8 @@ export class ChatComponent {
         }
       },
       complete: () => {
-        // Armamos el objeto para enviarlo a Spring Boot
         const dto: SupportTicketDto = {
-          chatSession: this.sessionId,
+          chatSessionId: this.sessionId,
           chatHistory: historialCompleto,
           aiSummary: aiSummaryGenerado || 'El usuario solicitó asistencia humana para un problema técnico no especificado.',
           userId: 1 
@@ -439,7 +456,7 @@ export class ChatComponent {
 
     const dto: FeedbackCreateDto = {
       coment: this.feedbackComment.trim() || 'Sin comentario',
-      chat_session: this.sessionId,
+      chatSessionId: this.chatState.sessionId,
       rating: this.feedbackRating!,
       q1_precision: this.scores.q1!,
       q2_coherencia: this.scores.q2!,

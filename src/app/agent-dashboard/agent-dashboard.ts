@@ -38,7 +38,7 @@ import { TicketApi, SupportTicketDto } from '../api/ticket.api';
               <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
                 <tr *ngFor="let t of tickets()" class="hover:bg-gray-50 dark:hover:bg-gray-800/20 transition-colors">
                   <td class="px-6 py-4 text-gray-900 dark:text-gray-300">#{{ t.idTicket }}</td>
-                  <td class="px-6 py-4 text-gray-500 dark:text-gray-400 text-xs">{{ t.chatSession.substring(0, 8) }}...</td>
+                  <td class="px-6 py-4 text-gray-500 dark:text-gray-400 text-xs">{{ (t.chatSession?.id || t.chatSessionId || '').substring(0, 8) }}...</td>
                   <td class="px-6 py-4 text-gray-700 dark:text-gray-300">{{ t.aiSummary }}</td>
                   <td class="px-6 py-4">
                     <span [ngClass]="t.status === 'OPEN' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'" 
@@ -56,7 +56,7 @@ import { TicketApi, SupportTicketDto } from '../api/ticket.api';
                 </tr>
                 <tr *ngIf="tickets().length === 0">
                   <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                    No hay tickets pendientes. ¡Buen trabajo! 🎉
+                    No hay tickets pendientes. ¡Buen trabajo! 
                   </td>
                 </tr>
               </tbody>
