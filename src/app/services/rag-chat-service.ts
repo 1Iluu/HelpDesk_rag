@@ -5,9 +5,8 @@ import { RagChunk } from '../models/rag-chunk';
 @Injectable({ providedIn: 'root' })
 export class RagChatService {
 
-  // 1. CAMBIO: Apuntamos directo a tu servidor Python manual
-  private pythonBaseUrl = 'https://rag-service-997951057443.us-east1.run.app';
-  //private pythonBaseUrl = 'http://localhost:8000';
+  //private pythonBaseUrl = 'https://rag-service-997951057443.us-east1.run.app';
+  private pythonBaseUrl = 'http://localhost:8000';
 
   private sessionId = signal<string | null>(null);
   private controller: AbortController | null = null;
@@ -44,12 +43,14 @@ export class RagChatService {
 
         console.log(`🚀 Enviando a: ${endpoint}`);
 
+        const sessionId = await this.ensureSession(); 
+
         const payload = {
           new_message: {
-             text: message
-          }
+            text: message
+          },
+          session_id: sessionId 
         };
-
         try {
           const res = await fetch(endpoint, {
             method: 'POST',
