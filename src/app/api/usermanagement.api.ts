@@ -7,7 +7,7 @@ export interface UserDTO {
   name: string;
   role: string | null;
   mail: string;
-  password?: string;
+  password: string;
   enabled: boolean;
   avatar: string;
 }

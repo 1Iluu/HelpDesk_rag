@@ -187,9 +187,9 @@
       <div>
         <label class="text-sm font-medium text-[#A0A0A0]">Email</label>
         <input type="email"
-               [value]="editing?.mail"
-               disabled
-               class="form-input h-12 w-full rounded-lg border border-[#3C3C3C] bg-[#1E1E1E] p-3 text-base text-[#777] opacity-60"/>
+              <input type="email"
+               [(ngModel)]="editing!.mail"
+               class="form-input h-12 w-full rounded-lg border border-[#3C3C3C] bg-[#1E1E1E] p-3 text-base text-[#F0F0F0] focus:border-primary focus:ring-primary/40"/>
       </div>
 
       <div>
