@@ -11,7 +11,6 @@ export class RagChatService {
   private sessionId = signal<string | null>(null);
   private controller: AbortController | null = null;
 
-  // Nota: Como el servidor manual no tiene endpoint /sessions,
   // generamos un ID local o simplemente retornamos uno dummy por ahora.
   async ensureSession(): Promise<string> {
     const current = this.sessionId();

@@ -17,7 +17,7 @@ export class AuthService {
   login(data: { mail: string; password: string }): Observable<any> {
     return this.api.authenticate(data).pipe(
       tap(res => {
-        const tk = res.token ?? res.jwttoken; // 👈 como ya hacías en tu login
+        const tk = res.token ?? res.jwttoken; 
         if (tk) {
           localStorage.setItem(this.TOKEN_KEY, tk);
         }
