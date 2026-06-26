@@ -5,8 +5,8 @@ import { RagChunk } from '../models/rag-chunk';
 @Injectable({ providedIn: 'root' })
 export class RagChatService {
 
-  //private pythonBaseUrl = 'https://rag-service-997951057443.us-east1.run.app';
-  private pythonBaseUrl = 'http://localhost:8000';
+  private pythonBaseUrl = 'https://rag-backend-42011032546.us-east1.run.app';
+  //private pythonBaseUrl = 'http://localhost:8000';
 
   private sessionId = signal<string | null>(null);
   private controller: AbortController | null = null;
