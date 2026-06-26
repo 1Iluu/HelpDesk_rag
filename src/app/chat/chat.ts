@@ -345,8 +345,8 @@ export class ChatComponent implements OnInit{
     const payload = {
       chatSessionId: this.sessionId
     };
-    this.http.post('http://localhost:8081/sessions/start', payload)
-    //this.http.post('https://helpdesk-backend-997951057443.us-east1.run.app/sessions/start', payload)
+    //this.http.post('http://localhost:8081/sessions/start', payload)
+    this.http.post('https://helpdesk-backend-42011032546.us-east1.run.app/sessions/start', payload)
       .subscribe({
         next: () =>{ console.log('✅ Sesión registrada para la métrica de deflexión');
         this.chatState.isSessionRegistered = true;

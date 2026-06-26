@@ -32,8 +32,8 @@ export interface FeedbackStatsDto {
 })
 export class FeedbackApi {
 
-  //private baseUrl = 'https://helpdesk-backend-997951057443.us-east1.run.app/feedback';
-  private baseUrl = 'http://localhost:8081/feedback';
+  private baseUrl = 'https://helpdesk-backend-42011032546.us-east1.run.app/feedback';
+  //private baseUrl = 'http://localhost:8081/feedback';
   constructor(private http: HttpClient) {}
 
   createFeedback(dto: FeedbackCreateDto): Observable<any> {
